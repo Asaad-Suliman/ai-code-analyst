@@ -5,10 +5,10 @@ performance issues, and suggests validated optimizations.
 
 ## Team
 
-- Member 1: LLM integration & RAG pipeline
-- Member 2: Performance analysis & metrics
-- Member 3: Multi-agent coordination & validation
-- Member 4: Web interface & integration
+- LLM integration & RAG pipeline
+- Performance analysis & metrics
+- Multi-agent coordination & validation
+- Web interface & integration
 
 ## Tech Stack
 
