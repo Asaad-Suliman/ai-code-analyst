@@ -210,23 +210,41 @@ def _execute_code(code: str, num_runs: int = 3) -> dict:
 def _normalize_output(output: str) -> str:
     """
     Normalize output for comparison.
-    Strips whitespace, sorts set-like outputs, etc.
-    """
-    # Strip whitespace
-    normalized = output.strip()
-    
-    # If output looks like a list/set, sort it for fair comparison
-    # e.g. [2, 1, 5] and [1, 2, 5] should match
-    if normalized.startswith("[") and normalized.endswith("]"):
-        try:
-            import ast
-            parsed = ast.literal_eval(normalized)
-            if isinstance(parsed, (list, set)):
-                return str(sorted(parsed))
-        except (ValueError, SyntaxError):
-            pass
 
-    return normalized
+    Handles these real-world cases:
+    1. Sets returned in different order  → sort before comparing
+    2. Floats with tiny differences      → round to 6 decimal places
+    3. set() vs list() output format     → normalize both to sorted list
+    4. Multi-line output                 → compare line by line after stripping
+    """
+    import ast
+    import re
+
+    # Step 4: Normalize multi-line — strip each line, drop blanks, rejoin
+    lines = [line.strip() for line in output.strip().splitlines()]
+    lines = [l for l in lines if l]  # drop blank lines
+
+    normalized_lines = []
+    for line in lines:
+        # Step 3 & 1: Handle list/set literals — normalize to sorted list
+        if (line.startswith("[") and line.endswith("]")) or \
+           (line.startswith("{") and line.endswith("}")):
+            try:
+                parsed = ast.literal_eval(line)
+                if isinstance(parsed, (list, set)):
+                    normalized_lines.append(str(sorted(parsed)))
+                    continue
+            except (ValueError, SyntaxError):
+                pass
+
+        # Step 2: Round floats in the line to 6 decimal places
+        def round_float(match):
+            return str(round(float(match.group()), 6))
+
+        line = re.sub(r"-?\d+\.\d+", round_float, line)
+        normalized_lines.append(line)
+
+    return "\n".join(normalized_lines)
 
 
 # ─── Quick test ──────────────────────────────────────────
@@ -263,4 +281,3 @@ print(find_duplicates([1, 2, 3, 2, 4, 5, 1, 6, 7, 5]))
     print(f"Optimized: {result.optimized_time_ms}ms")
     print(f"Speedup: {result.speedup_percentage}%")
     print(f"Outputs match: {result.outputs_match}")
-    print(f"Summary: {result.summary}")
