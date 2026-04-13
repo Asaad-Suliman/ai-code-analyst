@@ -32,8 +32,8 @@ def detect_bugs(user_input: UserInput) -> BugReport:
         ))
 
     return BugReport(
-        bug_score=data["bug_score"],
+        bug_score=data.get("bug_score", 50),
         bugs=bugs,
-        summary=data["summary"],
-        has_critical_bugs=data["has_critical_bugs"],
+        summary=data.get("summary", "Analysis complete."),
+        has_critical_bugs=data.get("has_critical_bugs", False),
     )
