@@ -19,16 +19,25 @@ def detect_bugs(user_input: UserInput) -> BugReport:
 
     text = response.choices[0].message.content
     text = text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-    data = json.loads(text)
+
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return BugReport(
+            bug_score=50,
+            bugs=[],
+            summary="Could not parse Gemini response. Please try again.",
+            has_critical_bugs=False,
+        )
 
     bugs = []
-    for b in data["bugs"]:
+    for b in data.get("bugs", []):
         bugs.append(Bug(
             line_number=b.get("line_number"),
-            severity=b["severity"],
-            category=b["category"],
-            description=b["description"],
-            suggestion=b["suggestion"],
+            severity=b.get("severity", "info"),
+            category=b.get("category", "bad_practice"),
+            description=b.get("description", ""),
+            suggestion=b.get("suggestion", ""),
         ))
 
     return BugReport(
