@@ -55,6 +55,8 @@ class Orchestrator:
             description=description,
         )
 
+        stages_completed = []
+
         print("=" * 60)
         print("🔍 STAGE 1: Bug Detection")
         print("=" * 60)
@@ -69,6 +71,7 @@ class Orchestrator:
                 has_critical_bugs=False,
             )
         print(f"   → Found {len(bug_report.bugs)} issues (score: {bug_report.bug_score}/100)")
+        stages_completed.append("bug_detection")
 
         print("\n" + "=" * 60)
         print("⚡ STAGE 2: Performance Analysis")
@@ -82,6 +85,7 @@ class Orchestrator:
             )
         print(f"   → Runtime: {perf_report.execution_time_ms}ms")
         print(f"   → Complexity: {perf_report.time_complexity}")
+        stages_completed.append("performance_analysis")
 
         print("\n" + "=" * 60)
         print("🔧 STAGE 3: Optimization")
@@ -101,6 +105,7 @@ class Orchestrator:
             )
         print(f"   → Changes: {len(optimization.changes_made)}")
         print(f"   → Expected: {optimization.expected_improvement}")
+        stages_completed.append("optimization")
 
         print("\n" + "=" * 60)
         print("✅ STAGE 4: Validation")
@@ -121,6 +126,7 @@ class Orchestrator:
         if validation.speedup_percentage:
             print(f"   → Speedup: {validation.speedup_percentage:.1f}%")
         print(f"   → Outputs match: {validation.outputs_match}")
+        stages_completed.append("validation")
 
         # ─── Build Final Report ──────────────────────────────
 
@@ -136,6 +142,7 @@ class Orchestrator:
             validation=validation,
             optimized_code=optimization.optimized_code,
             overall_summary=overall_summary,
+            stages_completed=stages_completed,
         )
 
         print("\n" + "=" * 60)
