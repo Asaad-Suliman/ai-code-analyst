@@ -127,6 +127,13 @@ def _run_multiple(code: str, num_runs: int = 3) -> dict:
     """
     Run code multiple times using shared execute_code and average the timing.
 
+    Handles edge cases:
+    - Crash / exception in optimized code  → success=False, error=stderr
+    - Timeout (infinite loop)              → success=False, error="timed out"
+    - Empty output from both versions      → outputs_match=True (handled upstream)
+    - Float rounding differences           → handled by _normalize_output()
+    - Multi-line output ordering           → handled by _normalize_output()
+
     Returns dict with: success, output, error, avg_time_ms
     """
     times = []
@@ -135,6 +142,7 @@ def _run_multiple(code: str, num_runs: int = 3) -> dict:
     for _ in range(num_runs):
         result = execute_code(code)
 
+        # Edge case: infinite loop or hard timeout
         if result.timed_out:
             return {
                 "success": False,
@@ -143,6 +151,7 @@ def _run_multiple(code: str, num_runs: int = 3) -> dict:
                 "avg_time_ms": 0,
             }
 
+        # Edge case: runtime error / exception
         if not result.success:
             return {
                 "success": False,
