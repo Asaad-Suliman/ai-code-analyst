@@ -5,23 +5,17 @@ Author: Asaad (System Architect)
 
 The validator is the PROOF engine. It:
 1. Runs the original code and captures output + timing
-2. Runs the optimized code and captures output + timing  
+2. Runs the optimized code and captures output + timing
 3. Compares outputs (they MUST match — same input → same output)
 4. Compares performance (the optimized code should be faster)
 5. Returns APPROVED, REJECTED, or UNCHANGED
 
 This is what makes our project different from ChatGPT — we PROVE the improvement.
-
-NOTE: For MVP, this uses subprocess directly. When Omer's Docker sandbox
-is ready, we switch to core/code_executor.py for safe execution.
 """
 
-import subprocess
-import time
-import tempfile
-import os
 from core.schemas import ValidationResult, ValidationStatus
 from core.config import SANDBOX_TIMEOUT_SECONDS
+from core.code_executor import execute_code
 
 
 def validate_optimization(
@@ -31,20 +25,20 @@ def validate_optimization(
 ) -> ValidationResult:
     """
     Run both original and optimized code, compare results.
-    
+
     Args:
         original_code: The user's original Python code
         optimized_code: The optimizer's improved version
         num_runs: Number of times to run each for reliable timing
-        
+
     Returns:
         ValidationResult with comparison metrics
     """
     # Run original code
-    orig_result = _execute_code(original_code, num_runs)
-    
+    orig_result = _run_multiple(original_code, num_runs)
+
     # Run optimized code
-    opt_result = _execute_code(optimized_code, num_runs)
+    opt_result = _run_multiple(optimized_code, num_runs)
 
     # ─── Handle execution failures ───────────────────────
     
@@ -129,81 +123,44 @@ def validate_optimization(
     )
 
 
-def _execute_code(code: str, num_runs: int = 3) -> dict:
+def _run_multiple(code: str, num_runs: int = 3) -> dict:
     """
-    Execute Python code in a subprocess and measure timing.
-    
-    Returns dict with: success, output, error, avg_time_ms, times
-    
-    WARNING: This is a TEMPORARY implementation using subprocess.
-    When Omer's Docker sandbox is ready, replace this with:
-        from core.code_executor import execute_in_sandbox
+    Run code multiple times using shared execute_code and average the timing.
+
+    Returns dict with: success, output, error, avg_time_ms
     """
     times = []
-    last_output = ""
-    last_error = ""
+    last_result = None
 
-    for i in range(num_runs):
-        try:
-            # Write code to a temp file
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".py", delete=False
-            ) as f:
-                f.write(code)
-                temp_path = f.name
+    for _ in range(num_runs):
+        result = execute_code(code)
 
-            start = time.perf_counter()
-            
-            result = subprocess.run(
-                ["python3", temp_path],
-                capture_output=True,
-                text=True,
-                timeout=SANDBOX_TIMEOUT_SECONDS,
-            )
-            
-            elapsed_ms = (time.perf_counter() - start) * 1000
-            times.append(elapsed_ms)
-            last_output = result.stdout.strip()
-            
-            if result.returncode != 0:
-                last_error = result.stderr.strip()
-                return {
-                    "success": False,
-                    "output": last_output,
-                    "error": last_error[:300],
-                    "avg_time_ms": 0,
-                    "times": [],
-                }
-
-        except subprocess.TimeoutExpired:
+        if result.timed_out:
             return {
                 "success": False,
                 "output": "",
                 "error": f"Code timed out after {SANDBOX_TIMEOUT_SECONDS}s",
                 "avg_time_ms": 0,
-                "times": [],
             }
-        except Exception as e:
+
+        if not result.success:
             return {
                 "success": False,
-                "output": "",
-                "error": str(e)[:300],
+                "output": result.stdout,
+                "error": result.stderr[:300],
                 "avg_time_ms": 0,
-                "times": [],
             }
-        finally:
-            # Clean up temp file
-            if 'temp_path' in locals() and os.path.exists(temp_path):
-                os.unlink(temp_path)
+
+        times.append(result.execution_time_ms)
+        last_result = result
 
     avg_time = sum(times) / len(times) if times else 0
 
     return {
         "success": True,
-        "output": last_output,
+        "output": last_result.stdout if last_result else "",
         "error": "",
         "avg_time_ms": avg_time,
-        "times": times,
     }
 
 
