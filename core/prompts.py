@@ -74,6 +74,7 @@ Return ONLY valid JSON with:
 - expected_improvement: string like "O(n^2) → O(n), ~90% faster"
 
 CRITICAL: The optimized code MUST produce IDENTICAL output to the original.
+CRITICAL: Keep ALL print() statements from the original code. Do not remove them.
 
 Original code:
 ```python
