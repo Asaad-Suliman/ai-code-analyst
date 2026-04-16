@@ -1,0 +1,51 @@
+{
+  "source_code": "# Sample 1: Classic O(n^2) duplicate finder\n# Expected: Optimizer should replace with set-based O(n) approach\n\ndef find_duplicates(lst):\n    duplicates = []\n    for i in range(len(lst)):\n        for j in range(i + 1, len(lst)):\n            if lst[i] == lst[j] and lst[i] not in duplicates:\n                duplicates.append(lst[i])\n    return duplicates\n\nprint(find_duplicates([1, 2, 3, 2, 4, 5, 1, 6, 7, 5]))\n",
+  "bug_report": {
+    "bug_score": 50,
+    "bugs": [
+      {
+        "line_number": null,
+        "severity": "info",
+        "category": "bad_practice",
+        "description": "The algorithm has a time complexity of O(n^2), which is inefficient for large lists.  It can be optimized to O(n) using a set.",
+        "suggestion": "Use a set to store seen elements and identify duplicates in O(n) time."
+      }
+    ],
+    "summary": "The provided code correctly identifies duplicates in a list, but it uses an inefficient O(n^2) nested loop approach.  A more performant solution would leverage a set for O(n) time complexity.  There are no runtime errors, logical errors, or security vulnerabilities.",
+    "has_critical_bugs": false
+  },
+  "performance_report": {
+    "execution_time_ms": 27.366,
+    "memory_usage_mb": 0.0004,
+    "time_complexity": "O(n^2)",
+    "space_complexity": "O(n)",
+    "bottlenecks": [
+      "Nested loop at line 6"
+    ],
+    "executed_successfully": true,
+    "execution_error": null,
+    "summary": "The provided code exhibits O(n^2) time complexity due to the nested loops, making it inefficient for large input lists. The primary bottleneck is the nested loop at line 6, where comparisons are performed to identify duplicate elements. A set-based approach would significantly improve performance."
+  },
+  "optimization": {
+    "optimized_code": "def find_duplicates(lst): \n    seen = set()\n    duplicates = []\n    for item in lst:\n        if item in seen and item not in duplicates:\n            duplicates.append(item)\n        seen.add(item)\n    return duplicates\n\nprint(find_duplicates([1, 2, 3, 2, 4, 5, 1, 6, 7, 5]))",
+    "changes_made": [
+      "Replaced the nested loop approach (O(n^2)) with a set-based approach (O(n)) to find duplicates.",
+      "Used a 'seen' set to efficiently track elements encountered so far, reducing time complexity.",
+      "The code now iterates through the list once, resulting in linear time complexity.",
+      "Preserved all original print statements."
+    ],
+    "expected_improvement": "O(n^2) → O(n), ~90% faster"
+  },
+  "validation": {
+    "status": "approved",
+    "original_time_ms": 35.02,
+    "optimized_time_ms": 25.31,
+    "speedup_percentage": 27.72,
+    "original_output": "[1, 2, 5]",
+    "optimized_output": "[2, 1, 5]",
+    "outputs_match": true,
+    "summary": "APPROVED: 27.7% faster. Original: 35.0ms → Optimized: 25.3ms. Outputs match."
+  },
+  "optimized_code": "def find_duplicates(lst): \n    seen = set()\n    duplicates = []\n    for item in lst:\n        if item in seen and item not in duplicates:\n            duplicates.append(item)\n        seen.add(item)\n    return duplicates\n\nprint(find_duplicates([1, 2, 3, 2, 4, 5, 1, 6, 7, 5]))",
+  "overall_summary": "Found 1 minor issues. Original runtime: 27.4ms (O(n^2)). Optimization approved: 27.7% faster (35.0ms → 25.3ms)."
+}

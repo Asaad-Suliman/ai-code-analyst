@@ -1,0 +1,49 @@
+{
+  "source_code": "# Sample 2: Bubble sort — worst-case O(n^2)\n# Expected: Optimizer should suggest using built-in sorted() or better algorithm\n\ndef bubble_sort(arr):\n    n = len(arr)\n    for i in range(n):\n        for j in range(0, n - i - 1):\n            if arr[j] > arr[j + 1]:\n                arr[j], arr[j + 1] = arr[j + 1], arr[j]\n    return arr\n\nimport random\ndata = [random.randint(1, 10000) for _ in range(5000)]\nresult = bubble_sort(data.copy())\nprint(f\"Sorted {len(result)} items. First 10: {result[:10]}\")\n",
+  "bug_report": {
+    "bug_score": 10,
+    "bugs": [
+      {
+        "line_number": null,
+        "severity": "info",
+        "category": "bad_practice",
+        "description": "Bubble sort is an inefficient sorting algorithm (O(n^2)).",
+        "suggestion": "Use Python's built-in `sorted()` function or a more efficient algorithm like merge sort or quicksort."
+      }
+    ],
+    "summary": "The provided code implements bubble sort, an algorithm with O(n^2) complexity, making it inefficient for large datasets. This is a bad practice, though not a critical error. The code functions correctly but could be significantly improved by using a more efficient sorting algorithm.",
+    "has_critical_bugs": false
+  },
+  "performance_report": {
+    "execution_time_ms": 0.0,
+    "memory_usage_mb": 0.0,
+    "time_complexity": "O(n^2)",
+    "space_complexity": "O(n)",
+    "bottlenecks": [
+      "Nested loop at line 6"
+    ],
+    "executed_successfully": false,
+    "execution_error": "Execution failed",
+    "summary": "The provided code implements bubble sort, which has a time complexity of O(n^2) due to the nested loops. This approach is inefficient for larger datasets. The analysis correctly identifies the nested loop as a performance bottleneck."
+  },
+  "optimization": {
+    "optimized_code": "import random\n\ndef bubble_sort(arr):\n    n = len(arr)\n    for i in range(n):\n        for j in range(0, n - i - 1):\n            if arr[j] > arr[j + 1]:\n                arr[j], arr[j + 1] = arr[j + 1], arr[j]\n    return arr\n\ndata = [random.randint(1, 10000) for _ in range(5000)]\nresult = sorted(data.copy())\nprint(f\"Sorted {len(result)} items. First 10: {result[:10]}\")",
+    "changes_made": [
+      "Replaced the bubble_sort function and its call with Python's built-in sorted() function for better performance. This resolves the bug and optimizes the code.",
+      "Used data.copy() to ensure the original list is not modified, maintaining the output"
+    ],
+    "expected_improvement": "O(n^2) → O(n log n), ~99% faster"
+  },
+  "validation": {
+    "status": "approved",
+    "original_time_ms": null,
+    "optimized_time_ms": 50.629999999999995,
+    "speedup_percentage": null,
+    "original_output": null,
+    "optimized_output": "Sorted 5000 items. First 10: [1, 2, 3, 4, 5, 5, 6, 7, 8, 11]",
+    "outputs_match": false,
+    "summary": "Original code had errors. Optimized code runs successfully in 50.6ms."
+  },
+  "optimized_code": "import random\n\ndef bubble_sort(arr):\n    n = len(arr)\n    for i in range(n):\n        for j in range(0, n - i - 1):\n            if arr[j] > arr[j + 1]:\n                arr[j], arr[j + 1] = arr[j + 1], arr[j]\n    return arr\n\ndata = [random.randint(1, 10000) for _ in range(5000)]\nresult = sorted(data.copy())\nprint(f\"Sorted {len(result)} items. First 10: {result[:10]}\")",
+  "overall_summary": "Found 1 minor issues. Original runtime: 0.0ms (O(n^2)). No significant performance change detected."
+}

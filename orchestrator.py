@@ -19,6 +19,7 @@ from core.schemas import (
     PerformanceReport,
     OptimizationResult,
     ValidationResult,
+    ValidationStatus,
     FinalReport,
 )
 
@@ -54,41 +55,78 @@ class Orchestrator:
             description=description,
         )
 
+        stages_completed = []
+
         print("=" * 60)
         print("🔍 STAGE 1: Bug Detection")
         print("=" * 60)
-        bug_report: BugReport = detect_bugs(user_input)
+        try:
+            bug_report: BugReport = detect_bugs(user_input)
+        except Exception as e:
+            print(f"   Bug detector failed: {e}")
+            bug_report = BugReport(
+                bug_score=0,
+                bugs=[],
+                summary=f"Bug detection failed: {str(e)}",
+                has_critical_bugs=False,
+            )
         print(f"   → Found {len(bug_report.bugs)} issues (score: {bug_report.bug_score}/100)")
+        stages_completed.append("bug_detection")
 
         print("\n" + "=" * 60)
         print("⚡ STAGE 2: Performance Analysis")
         print("=" * 60)
-        perf_report: PerformanceReport = analyze_performance(user_input)
+        try:
+            perf_report: PerformanceReport = analyze_performance(user_input)
+        except Exception as e:
+            print(f"   Performance analyzer failed: {e}")
+            perf_report = PerformanceReport(
+                summary=f"Performance analysis failed: {str(e)}",
+            )
         print(f"   → Runtime: {perf_report.execution_time_ms}ms")
         print(f"   → Complexity: {perf_report.time_complexity}")
+        stages_completed.append("performance_analysis")
 
         print("\n" + "=" * 60)
         print("🔧 STAGE 3: Optimization")
         print("=" * 60)
-        optimization: OptimizationResult = optimize_code(
-            user_input=user_input,
-            bug_report=bug_report,
-            performance_report=perf_report,
-        )
+        try:
+            optimization: OptimizationResult = optimize_code(
+                user_input=user_input,
+                bug_report=bug_report,
+                performance_report=perf_report,
+            )
+        except Exception as e:
+            print(f"   Optimizer failed: {e}")
+            optimization = OptimizationResult(
+                optimized_code=user_input.source_code,
+                changes_made=[],
+                expected_improvement=f"Optimization failed: {str(e)}",
+            )
         print(f"   → Changes: {len(optimization.changes_made)}")
         print(f"   → Expected: {optimization.expected_improvement}")
+        stages_completed.append("optimization")
 
         print("\n" + "=" * 60)
         print("✅ STAGE 4: Validation")
         print("=" * 60)
-        validation: ValidationResult = validate_optimization(
-            original_code=user_input.source_code,
-            optimized_code=optimization.optimized_code,
-        )
+        try:
+            validation: ValidationResult = validate_optimization(
+                original_code=user_input.source_code,
+                optimized_code=optimization.optimized_code,
+            )
+        except Exception as e:
+            print(f"   Validator failed: {e}")
+            validation = ValidationResult(
+                status=ValidationStatus.REJECTED,
+                summary=f"Validation failed: {str(e)}",
+                outputs_match=False,
+            )
         print(f"   → Status: {validation.status.value}")
         if validation.speedup_percentage:
             print(f"   → Speedup: {validation.speedup_percentage:.1f}%")
         print(f"   → Outputs match: {validation.outputs_match}")
+        stages_completed.append("validation")
 
         # ─── Build Final Report ──────────────────────────────
 
@@ -104,6 +142,7 @@ class Orchestrator:
             validation=validation,
             optimized_code=optimization.optimized_code,
             overall_summary=overall_summary,
+            stages_completed=stages_completed,
         )
 
         print("\n" + "=" * 60)
