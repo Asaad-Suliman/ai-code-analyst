@@ -2,16 +2,14 @@
 Code Executor
 =============
 Owner: Omer
-Status: REAL IMPLEMENTATION — subprocess with real timing and memory.
+Status: REAL IMPLEMENTATION - Docker sandbox with real timing and memory.
 
 This module handles safe execution of arbitrary Python code.
-Uses subprocess with the correct Python executable for Windows.
+Uses Docker container with resource limits and network isolation.
 Memory tracked using tracemalloc injected into user code.
 """
 
 import subprocess
-import tempfile
-import os
 import sys
 import time
 from core.config import SANDBOX_TIMEOUT_SECONDS, SANDBOX_MEMORY_LIMIT_MB
@@ -32,7 +30,8 @@ class ExecutionResult:
 
 def execute_code(source_code: str) -> ExecutionResult:
     """
-    Execute Python code and return results with real timing and memory.
+    Execute Python code inside a Docker sandbox and return results
+    with real timing and memory tracking.
 
     Args:
         source_code: Python code string to execute
@@ -41,40 +40,39 @@ def execute_code(source_code: str) -> ExecutionResult:
         ExecutionResult with stdout, stderr, timing, memory
     """
 
-    # Wrap user code with memory tracking
+    # Wrap user code with tracemalloc memory tracking
     wrapped_code = f"""
 import tracemalloc
 import sys
 
 tracemalloc.start()
 
-# ── USER CODE START ──
+# USER CODE START
 {source_code}
-# ── USER CODE END ──
+# USER CODE END
 
 current, peak = tracemalloc.get_traced_memory()
 tracemalloc.stop()
 print(f"__MEMORY_PEAK_MB__:{{peak / 1024 / 1024:.4f}}", file=sys.stderr)
 """
 
-    temp_path = None
     try:
-        # Write wrapped code to a temp file
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".py", delete=False, encoding="utf-8"
-        ) as f:
-            f.write(wrapped_code)
-            temp_path = f.name
-
-        # Use the same Python that is running this project
-        python_executable = sys.executable
-
         start = time.perf_counter()
 
         result = subprocess.run(
-            [python_executable, temp_path],
+            [
+                "docker", "run",
+                "--rm",
+                "-i",
+                "--network", "none",
+                "--memory", f"{SANDBOX_MEMORY_LIMIT_MB}m",
+                "--cpus", "0.5",
+                "code-sandbox"
+            ],
+            input=wrapped_code,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=SANDBOX_TIMEOUT_SECONDS,
         )
 
@@ -111,6 +109,3 @@ print(f"__MEMORY_PEAK_MB__:{{peak / 1024 / 1024:.4f}}", file=sys.stderr)
             stderr=str(e),
             exit_code=-1,
         )
-    finally:
-        if temp_path and os.path.exists(temp_path):
-            os.unlink(temp_path)

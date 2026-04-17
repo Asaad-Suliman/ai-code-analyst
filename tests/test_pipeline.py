@@ -8,6 +8,7 @@ Run with: python -m pytest tests/test_pipeline.py -v
 import pytest
 from orchestrator import Orchestrator
 from core.schemas import FinalReport, ValidationStatus
+from core.code_executor import execute_code
 
 
 class TestPipeline:
@@ -86,3 +87,45 @@ print("done")
 
         result = validate_optimization(original, optimized)
         assert result.status == ValidationStatus.REJECTED
+
+
+# SECURITY TESTS (Sprint 3 - Omer)
+
+def test_block_os_system():
+    """Malicious code trying to run system commands must be blocked."""
+    result = execute_code("import os; os.system('echo hacked')")
+    assert result.exit_code != 0 or "hacked" not in result.stdout
+    print("PASS - os.system blocked")
+
+def test_block_file_write():
+    """Malicious code trying to write files must be blocked."""
+    result = execute_code("open('/etc/passwd', 'w').write('hacked')")
+    assert result.exit_code != 0
+    print("PASS - file write blocked")
+
+def test_block_network():
+    """Malicious code trying to access network must be blocked."""
+    result = execute_code("import urllib.request; urllib.request.urlopen('http://google.com')")
+    assert result.exit_code != 0
+    print("PASS - network blocked")
+
+def test_timeout():
+    """Infinite loop must be killed by timeout."""
+    result = execute_code("while True: pass")
+    assert result.timed_out or result.exit_code != 0
+    print("PASS - infinite loop killed")
+
+def test_memory_limit():
+    """Code trying to use too much memory must be killed."""
+    result = execute_code("x = ' ' * (200 * 1024 * 1024)")
+    assert result.exit_code != 0 or result.timed_out
+    print("PASS - memory limit enforced")
+
+
+if __name__ == "__main__":
+    test_block_os_system()
+    test_block_file_write()
+    test_block_network()
+    test_timeout()
+    test_memory_limit()
+    print("\nAll security tests passed!")
