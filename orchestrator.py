@@ -201,7 +201,7 @@ def find_duplicates(lst):
     return duplicates
 
 # Test
-print(find_duplicates([1, 2, 3, 2, 4, 5, 1, 6, 7, 5]))
+print(find_duplicates(list(range(500)) + list(range(250))))
 '''
     orch = Orchestrator()
     report = orch.run(sample_code)
