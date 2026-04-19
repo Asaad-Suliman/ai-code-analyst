@@ -10,7 +10,6 @@ Memory tracked using tracemalloc injected into user code.
 """
 
 import subprocess
-import sys
 import time
 from core.config import SANDBOX_TIMEOUT_SECONDS, SANDBOX_MEMORY_LIMIT_MB
 
@@ -62,12 +61,12 @@ print(f"__MEMORY_PEAK_MB__:{{peak / 1024 / 1024:.4f}}", file=sys.stderr)
         result = subprocess.run(
             [
                 "docker", "run",
-                "--rm",
-                "-i",
-                "--network", "none",
-                "--memory", f"{SANDBOX_MEMORY_LIMIT_MB}m",
-                "--cpus", "0.5",
-                "code-sandbox"
+                "--rm",                                     # Delete container after run
+            "-i",                                       # Accept input via stdin
+            "--network", "none",                        # No internet access
+            "--memory", f"{SANDBOX_MEMORY_LIMIT_MB}m", # Memory limit
+            "--cpus", "0.5",                            # CPU limit
+            "code-sandbox"                              # Docker image name
             ],
             input=wrapped_code,
             capture_output=True,

@@ -2,7 +2,11 @@
 Performance Analyzer Agent
 ===========================
 Owner: Omer
-Status: REAL IMPLEMENTATION — uses code_executor and metrics for real data.
+Sprint: 1, 2
+
+Runs user code in Docker sandbox and measures real performance.
+Combines real execution data (timing, memory) with AST analysis (complexity, bottlenecks).
+Then sends results to Gemini AI for a deeper natural language summary.
 """
 import json
 from openai import OpenAI
@@ -23,7 +27,17 @@ client = OpenAI(
 
 def analyze_performance(user_input: UserInput) -> PerformanceReport:
     """
-    Execute code in sandbox and measure real performance metrics.
+    Execute code in Docker sandbox and measure real performance metrics.
+
+    Steps:
+    1. Run code 3 times via Docker, average the execution time
+    2. Measure peak memory usage via tracemalloc inside Docker
+    3. Parse AST to estimate time/space complexity
+    4. Detect bottlenecks (nested loops, slow membership checks)
+    5. Send all data to Gemini AI for deeper analysis and summary
+
+    Returns:
+        PerformanceReport with all fields filled from real data
     """
     source_code = user_input.source_code
 

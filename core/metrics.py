@@ -2,15 +2,15 @@
 Metrics Collection
 ===================
 Owner: Omer
-Status: REAL IMPLEMENTATION — actual timing, memory, and AST analysis.
+Sprint: 1, 2
+
+Provides three types of analysis:
+- measure_execution_time(): runs code via Docker sandbox, averages timing over multiple runs
+- measure_memory_usage(): runs code via Docker sandbox, returns peak memory in MB
+- estimate_complexity(): parses code AST to detect O(n), O(n^2), O(n log n) patterns
+- detect_bottlenecks(): scans AST for nested loops, slow membership checks, string concatenation
 """
 import ast
-import sys
-import time
-import subprocess
-import tempfile
-import os
-import tracemalloc
 from typing import Optional
 from core.code_executor import execute_code
 
