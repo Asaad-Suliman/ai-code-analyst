@@ -9,6 +9,7 @@ This connects the Streamlit frontend to the orchestrator backend.
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 from orchestrator import Orchestrator
 
 app = FastAPI(
@@ -22,7 +23,7 @@ orchestrator = Orchestrator()
 
 class AnalyzeRequest(BaseModel):
     source_code: str
-    description: str = None
+    description: Optional[str] = None
 
 
 @app.get("/")
