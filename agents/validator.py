@@ -10,6 +10,10 @@ The validator is the PROOF engine. It:
 4. Compares performance (the optimized code should be faster)
 5. Returns APPROVED, REJECTED, or UNCHANGED
 
+Execution is sandboxed via Docker (code-sandbox image) through core/code_executor.py.
+This means user-submitted code runs with no network access, capped memory, and capped CPU —
+dangerous code cannot affect the host system.
+
 This is what makes our project different from ChatGPT — we PROVE the improvement.
 """
 
