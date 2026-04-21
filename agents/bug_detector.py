@@ -10,6 +10,31 @@ client = OpenAI(
 )
 
 def detect_bugs(user_input: UserInput) -> BugReport:
+    # Input validation
+    if not user_input.source_code or not user_input.source_code.strip():
+        return BugReport(
+            bug_score=0,
+            bugs=[],
+            summary="No code provided. Please submit Python code to analyze.",
+            has_critical_bugs=False,
+        )
+
+    if len(user_input.source_code) > 10000:
+        return BugReport(
+            bug_score=0,
+            bugs=[],
+            summary="Code is too long. Please submit code under 10,000 characters.",
+            has_critical_bugs=False,
+        )
+
+    if not any(kw in user_input.source_code for kw in ["def ", "class ", "import ", "for ", "while ", "if ", "print", "="]):
+        return BugReport(
+            bug_score=0,
+            bugs=[],
+            summary="This does not appear to be Python code. Please submit valid Python.",
+            has_critical_bugs=False,
+        )
+
     prompt = BUG_DETECTOR_PROMPT.format(source_code=user_input.source_code)
 
     response = client.chat.completions.create(
