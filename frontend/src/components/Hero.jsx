@@ -15,7 +15,7 @@ export default function Hero() {
       antialias: true,
       alpha: true,
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(1);
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     const scene = new THREE.Scene();
@@ -28,7 +28,7 @@ export default function Hero() {
     camera.position.z = 12;
 
     // Particle field
-    const particleCount = 800;
+    const particleCount = 300;
     const positions = new Float32Array(particleCount * 3);
     for (let i = 0; i < particleCount * 3; i++) {
       positions[i] = (Math.random() - 0.5) * 40;
@@ -48,12 +48,11 @@ export default function Hero() {
     scene.add(particles);
 
     // 4 Agent nodes
-    const agentColors = [0xf59e0b, 0x00e5ff, 0x7c3aed, 0x10b981];
+    const agentColors = [0xf59e0b, 0x00e5ff, 0x7c3aed];
     const agentPositions = [
-      [-5, 1.5, 0],
-      [-1.5, -1.5, 1],
-      [1.5, 1.5, -1],
-      [5, -1.5, 0],
+      [-4, 1.5, 0],
+      [0, -1.5, 1],
+      [4, 1.5, -1],
     ];
 
     const nodes = agentPositions.map((pos, i) => {
@@ -84,9 +83,7 @@ export default function Hero() {
     const connections = [
       [0, 1],
       [1, 2],
-      [2, 3],
       [0, 2],
-      [1, 3],
     ];
 
     const beamMeshes = connections.map(([a, b]) => {
@@ -115,7 +112,7 @@ export default function Hero() {
 
     // Flowing dots along beams
     const flowDots = connections.flatMap(([a, b]) => {
-      return Array.from({ length: 3 }, (_, k) => {
+      return Array.from({ length: 1 }, (_, k) => {
         const geo = new THREE.SphereGeometry(0.06, 8, 8);
         const mat = new THREE.MeshBasicMaterial({
           color: 0x00e5ff,
