@@ -241,6 +241,111 @@ function PyCode({ code, style, scanning }) {
   );
 }
 
+function EditableCodeArea({ code, onChange, style, scanning }) {
+  return (
+    <div
+      style={{
+        background: "#060d1a",
+        border: "1px solid rgba(0,229,255,0.1)",
+        borderRadius: "12px",
+        padding: "22px 24px",
+        position: "relative",
+        overflow: "hidden",
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        ...style,
+      }}
+    >
+      {scanning && (
+        <motion.div
+          initial={{ top: "0%" }}
+          animate={{ top: ["0%", "100%", "0%"] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            height: "2px",
+            background:
+              "linear-gradient(90deg, transparent, #00e5ff, transparent)",
+            boxShadow: "0 0 12px 2px rgba(0,229,255,0.45)",
+            zIndex: 5,
+            pointerEvents: "none",
+          }}
+        />
+      )}
+      {scanning && (
+        <motion.div
+          initial={{ top: "0%" }}
+          animate={{ top: ["0%", "100%", "0%"] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            height: "40px",
+            background:
+              "linear-gradient(180deg, transparent, rgba(0,229,255,0.04), transparent)",
+            zIndex: 4,
+            pointerEvents: "none",
+            transform: "translateY(-50%)",
+          }}
+        />
+      )}
+      {[
+        { top: 6, left: 6, borderTop: true, borderLeft: true },
+        { top: 6, right: 6, borderTop: true, borderRight: true },
+        { bottom: 6, left: 6, borderBottom: true, borderLeft: true },
+        { bottom: 6, right: 6, borderBottom: true, borderRight: true },
+      ].map((corner, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            ...(corner.top !== undefined ? { top: corner.top } : {}),
+            ...(corner.bottom !== undefined ? { bottom: corner.bottom } : {}),
+            ...(corner.left !== undefined ? { left: corner.left } : {}),
+            ...(corner.right !== undefined ? { right: corner.right } : {}),
+            width: 10,
+            height: 10,
+            borderTop: corner.borderTop ? "2px solid #00e5ff" : "none",
+            borderBottom: corner.borderBottom ? "2px solid #00e5ff" : "none",
+            borderLeft: corner.borderLeft ? "2px solid #00e5ff" : "none",
+            borderRight: corner.borderRight ? "2px solid #00e5ff" : "none",
+            filter: "drop-shadow(0 0 4px #00e5ff)",
+            zIndex: 6,
+            pointerEvents: "none",
+          }}
+        />
+      ))}
+      <textarea
+        value={code}
+        onChange={(e) => onChange(e.target.value)}
+        spellCheck={false}
+        style={{
+          flex: 1,
+          width: "100%",
+          minHeight: "220px",
+          background: "transparent",
+          border: "none",
+          outline: "none",
+          resize: "vertical",
+          fontFamily: "IBM Plex Mono, monospace",
+          fontSize: "13px",
+          lineHeight: 1.8,
+          color: "#eeffff",
+          whiteSpace: "pre",
+          overflowX: "auto",
+          zIndex: 1,
+          position: "relative",
+          caretColor: "#00e5ff",
+        }}
+      />
+    </div>
+  );
+}
+
 // Terminal pipeline animation
 const STEPS = [
   {
@@ -666,6 +771,7 @@ const OPTIMIZED_CODE = `def find_duplicates(arr):
 export default function Demo() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [code, setCode] = useState(INPUT_CODE);
   const [visibleLines, setVisibleLines] = useState([]);
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
@@ -694,6 +800,7 @@ export default function Demo() {
     setErrorMode(null);
     setApiResult(null);
     setApiError(null);
+    setCode(INPUT_CODE);
   };
 
   const runScenario = (steps, errKey = null) => {
@@ -728,7 +835,7 @@ export default function Demo() {
       const response = await fetch("http://127.0.0.1:8000/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ source_code: INPUT_CODE, language: "python" }),
+        body: JSON.stringify({ source_code: code, language: "python" }),
       });
       if (!response.ok) throw new Error(`Server error: ${response.status}`);
       const data = await response.json();
@@ -876,9 +983,17 @@ export default function Demo() {
               }}
             >
               <DotLabel color="#ef4444" />
-              Input — find_duplicates.py
+              Input — Python{" "}
+              <span style={{ color: "#4b5563", fontWeight: 400 }}>
+                (editable)
+              </span>
             </div>
-            <PyCode code={INPUT_CODE} style={{ flex: 1 }} scanning={running} />
+            <EditableCodeArea
+              code={code}
+              onChange={setCode}
+              style={{ flex: 1 }}
+              scanning={running}
+            />
           </div>
 
           {/* Terminal */}
