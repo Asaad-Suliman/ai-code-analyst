@@ -800,7 +800,6 @@ export default function Demo() {
     setErrorMode(null);
     setApiResult(null);
     setApiError(null);
-    setCode(INPUT_CODE);
   };
 
   const runScenario = (steps, errKey = null) => {
@@ -828,6 +827,7 @@ export default function Demo() {
 
   const runPipeline = async () => {
     if (running) return;
+    const codeToAnalyze = code;
     setApiResult(null);
     setApiError(null);
     runScenario(STEPS);
@@ -835,7 +835,10 @@ export default function Demo() {
       const response = await fetch("http://127.0.0.1:8000/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ source_code: code, language: "python" }),
+        body: JSON.stringify({
+          source_code: codeToAnalyze,
+          language: "python",
+        }),
       });
       if (!response.ok) throw new Error(`Server error: ${response.status}`);
       const data = await response.json();
@@ -1070,7 +1073,10 @@ export default function Demo() {
               {/* Reset button */}
               {(done || visibleLines.length > 0) && (
                 <motion.button
-                  onClick={reset}
+                  onClick={() => {
+                    reset();
+                    setCode(INPUT_CODE);
+                  }}
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
                   style={{
