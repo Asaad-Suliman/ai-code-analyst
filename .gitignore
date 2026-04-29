@@ -8,6 +8,6 @@ dist/
 build/
 .vscode/
 .idea/
-venv/git push
+venv/
 node_modules/
 *.log
