@@ -53,12 +53,15 @@ html {
 body {
   background-color: var(--bg);
   color: #e2e8f0;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4 {
-  font-family: 'Syne', sans-serif;
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Syne", sans-serif;
 }
 
 ::-webkit-scrollbar {
@@ -73,7 +76,7 @@ h1, h2, h3, h4 {
 }
 
 .section-label {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: "IBM Plex Mono", monospace;
   font-size: 0.7rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -90,9 +93,15 @@ h1, h2, h3, h4 {
 
 .gradient-line {
   height: 1px;
-  background: linear-gradient(90deg, transparent, #00e5ff, #7c3aed, transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #00e5ff,
+    #7c3aed,
+    transparent
+  );
 }
 
 .mono {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: "IBM Plex Mono", monospace;
 }

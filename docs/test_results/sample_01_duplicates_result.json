@@ -19,9 +19,7 @@
     "memory_usage_mb": 0.0004,
     "time_complexity": "O(n^2)",
     "space_complexity": "O(n)",
-    "bottlenecks": [
-      "Nested loop at line 6"
-    ],
+    "bottlenecks": ["Nested loop at line 6"],
     "executed_successfully": true,
     "execution_error": null,
     "summary": "The provided code exhibits O(n^2) time complexity due to the nested loops, making it inefficient for large input lists. The primary bottleneck is the nested loop at line 6, where comparisons are performed to identify duplicate elements. A set-based approach would significantly improve performance."

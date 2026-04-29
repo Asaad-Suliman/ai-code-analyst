@@ -19,9 +19,7 @@
     "memory_usage_mb": 0.0,
     "time_complexity": "O(n^2)",
     "space_complexity": "O(n)",
-    "bottlenecks": [
-      "Nested loop at line 6"
-    ],
+    "bottlenecks": ["Nested loop at line 6"],
     "executed_successfully": false,
     "execution_error": "Execution failed",
     "summary": "The provided code implements bubble sort, which has a time complexity of O(n^2) due to the nested loops. This approach is inefficient for larger datasets. The analysis correctly identifies the nested loop as a performance bottleneck."

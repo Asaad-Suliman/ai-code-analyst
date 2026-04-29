@@ -47,9 +47,10 @@ ai-code-analyst/
 ```
 
 ## Owner Map
-| Member      | Files                                              |
-|-------------|---------------------------------------------------|
-| Asaad       | orchestrator.py, validator.py, schemas.py, config.py |
-| Ibro        | bug_detector.py, optimizer.py, prompts.py, retriever.py |
-| Omer        | performance_analyzer.py, code_executor.py, metrics.py, Dockerfile |
-| Abdulkadir  | app.py, streamlit_app.py, all web/ files           |
+
+| Member     | Files                                                             |
+| ---------- | ----------------------------------------------------------------- |
+| Asaad      | orchestrator.py, validator.py, schemas.py, config.py              |
+| Ibro       | bug_detector.py, optimizer.py, prompts.py, retriever.py           |
+| Omer       | performance_analyzer.py, code_executor.py, metrics.py, Dockerfile |
+| Abdulkadir | app.py, streamlit_app.py, all web/ files                          |

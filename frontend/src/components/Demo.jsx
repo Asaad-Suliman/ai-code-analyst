@@ -894,9 +894,20 @@ export default function Demo() {
           sub: `${
             apiResult.validation?.status === "approved"
               ? "✅ APPROVED"
-              : (apiResult.validation?.status?.toUpperCase() ?? "--")
+              : apiResult.validation?.status === "unchanged"
+                ? "~ No changes needed"
+                : (apiResult.validation?.status?.toUpperCase() ?? "--")
           } — outputs ${apiResult.validation?.outputs_match ? "match" : "differ"}`,
-          color: "#00e5ff",
+          color:
+            apiResult.validation?.status === "unchanged"
+              ? "#f59e0b"
+              : "#00e5ff",
+        },
+        {
+          label: "Space Complexity",
+          value: apiResult.performance_report?.space_complexity ?? "N/A",
+          sub: "memory usage pattern",
+          color: "#7c3aed",
         },
       ]
     : RESULT_CARDS;
