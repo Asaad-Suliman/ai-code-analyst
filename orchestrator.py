@@ -125,7 +125,7 @@ class Orchestrator:
         print("\n" + "=" * 60)
         print("🔍 STAGE 3: Bug Detection")
         print("=" * 60)
-        self._emit_log("Stage 3/6: Bug Detector — Gemini analysis starting", on_log)
+        self._emit_log("Stage 3/6: Bug Detector — LLM analysis starting", on_log)
         try:
             bug_report: BugReport = detect_bugs(user_input)
         except Exception as e:
@@ -165,7 +165,7 @@ class Orchestrator:
         print("\n" + "=" * 60)
         print("🔧 STAGE 5: Optimization")
         print("=" * 60)
-        self._emit_log("Stage 5/6: Optimizer — generating optimized code via Gemini", on_log)
+        self._emit_log("Stage 5/6: Optimizer — generating optimized code via LLM", on_log)
         try:
             optimization: OptimizationResult = optimize_code(
                 user_input=user_input,
