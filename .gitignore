@@ -21,3 +21,8 @@ tests/screenshots/
 
 # internal dev notes
 MODULE5_BUGFIX.md
+
+# superseded/dead code (kept locally, not in public repo)
+MainSections/
+web/
+/config.py
