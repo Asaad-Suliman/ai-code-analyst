@@ -1,13 +1,8 @@
 import json
 import re
-from openai import OpenAI
 from core.schemas import UserInput, BugReport, PerformanceReport, OptimizationResult, SecurityReport
 from core.prompts import OPTIMIZER_PROMPT
-from core.config import OPENAI_API_KEY
-
-client = OpenAI(
-    api_key=OPENAI_API_KEY,
-)
+from core.config import get_llm_client, get_llm_model
 
 def _clean_json(text: str) -> str:
     text = text.strip()
@@ -58,8 +53,8 @@ def optimize_code(
 
     def _call_model(p: str) -> dict | None:
         """Call the model and parse JSON. Returns dict or None on failure."""
-        r = client.chat.completions.create(
-            model="gpt-4o",
+        r = get_llm_client().chat.completions.create(
+            model=get_llm_model(),
             messages=[{"role": "user", "content": p}],
         )
         raw = _clean_json(r.choices[0].message.content)

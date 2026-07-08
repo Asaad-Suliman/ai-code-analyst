@@ -11,7 +11,6 @@ Combines that runtime data with AST analysis (complexity, bottlenecks), then sen
 results to OpenAI (gpt-4o-mini) for a natural-language summary.
 """
 import json
-from openai import OpenAI
 from core.schemas import UserInput, PerformanceReport
 from core.metrics import (
     measure_execution_time,
@@ -19,12 +18,7 @@ from core.metrics import (
     estimate_complexity,
     detect_bottlenecks,
 )
-from core.config import OPENAI_API_KEY
-
-
-client = OpenAI(
-    api_key=OPENAI_API_KEY,
-)
+from core.config import get_llm_client, get_llm_model
 
 
 def analyze_performance(user_input: UserInput) -> PerformanceReport:
@@ -82,8 +76,8 @@ Return ONLY valid JSON:
 }}"""
 
     try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
+        response = get_llm_client().chat.completions.create(
+            model=get_llm_model(),
             messages=[{"role": "user", "content": prompt}],
         )
         text = response.choices[0].message.content

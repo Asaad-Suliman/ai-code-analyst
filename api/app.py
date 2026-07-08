@@ -13,7 +13,8 @@ import json
 import asyncio
 from collections import Counter
 
-from supabase import create_client, Client
+from functools import lru_cache
+
 from core.config import SUPABASE_URL, SUPABASE_ANON_KEY
 from core.schemas import FinalReport, UserStats
 from orchestrator import Orchestrator
@@ -31,10 +32,26 @@ app.add_middleware(
 _SESSION_LIST_LIMIT = 50
 _MEM_SAVING_FRACTION = 0.3
 
-# Strip any path suffix (e.g. /rest/v1/) — SDK needs bare project URL
-_base_url = SUPABASE_URL.split("/rest/")[0].split("/auth/")[0].rstrip("/") if SUPABASE_URL else ""
-supabase: Client = create_client(_base_url, SUPABASE_ANON_KEY)
 _orchestrator = Orchestrator()
+
+
+def _supabase_configured() -> bool:
+    return bool(SUPABASE_URL and SUPABASE_ANON_KEY)
+
+
+@lru_cache(maxsize=1)
+def get_supabase():
+    """Lazily build the Supabase client on first use (cached as a singleton).
+
+    Raises HTTPException(503) at CALL time — never at import — if Supabase is
+    not configured, so the backend boots and core /analyze works without it.
+    """
+    if not _supabase_configured():
+        raise HTTPException(status_code=503, detail="Supabase not configured")
+    from supabase import create_client
+    # Strip any path suffix (e.g. /rest/v1/) — SDK needs bare project URL
+    base_url = SUPABASE_URL.split("/rest/")[0].split("/auth/")[0].rstrip("/")
+    return create_client(base_url, SUPABASE_ANON_KEY)
 
 class AnalyzeRequest(BaseModel):
     source_code: str
@@ -54,12 +71,14 @@ def get_current_user(authorization: Optional[str] = Header(None)):
         return None
     token = authorization.split(" ")[1]
     try:
-        user = supabase.auth.get_user(token)
+        user = get_supabase().auth.get_user(token)
         return user.user
     except Exception:
         return None
 
 def require_auth(authorization: Optional[str] = Header(None)):
+    if not _supabase_configured():
+        raise HTTPException(status_code=503, detail="Supabase not configured")
     user = get_current_user(authorization)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -76,7 +95,7 @@ def health():
 @app.post("/auth/signup")
 def signup(req: SignupRequest):
     try:
-        res = supabase.auth.sign_up({
+        res = get_supabase().auth.sign_up({
             "email": req.email,
             "password": req.password,
             "options": {"data": {"display_name": req.display_name or req.email.split("@")[0]}}
@@ -100,7 +119,7 @@ def signup(req: SignupRequest):
 @app.post("/auth/login")
 def login(req: LoginRequest):
     try:
-        res = supabase.auth.sign_in_with_password({
+        res = get_supabase().auth.sign_in_with_password({
             "email": req.email,
             "password": req.password,
         })
@@ -124,7 +143,7 @@ def login(req: LoginRequest):
 def logout(authorization: Optional[str] = Header(None)):
     try:
         if authorization and authorization.startswith("Bearer "):
-            supabase.auth.sign_out()
+            get_supabase().auth.sign_out()
     except Exception:
         pass
     return {"message": "Logged out"}
@@ -156,13 +175,13 @@ def analyze(req: AnalyzeRequest, authorization: Optional[str] = Header(None)):
     if user_id and authorization:
         try:
             token = authorization.split(" ")[1]
-            supabase.postgrest.auth(token)
-            supabase.table("sessions").insert({
+            get_supabase().postgrest.auth(token)
+            get_supabase().table("sessions").insert({
                 "user_id": user_id,
                 "source_code": req.source_code,
                 "final_report": json.loads(report.model_dump_json()),
             }).execute()
-            supabase.postgrest.auth(SUPABASE_ANON_KEY)
+            get_supabase().postgrest.auth(SUPABASE_ANON_KEY)
         except Exception as e:
             print(f"[API] Failed to save session: {e}")
     return report
@@ -194,13 +213,13 @@ async def analyze_stream(req: AnalyzeRequest, authorization: Optional[str] = Hea
             if user_id and authorization:
                 try:
                     token = authorization.split(" ")[1]
-                    supabase.postgrest.auth(token)
-                    supabase.table("sessions").insert({
+                    get_supabase().postgrest.auth(token)
+                    get_supabase().table("sessions").insert({
                         "user_id": user_id,
                         "source_code": req.source_code,
                         "final_report": report_dict,
                     }).execute()
-                    supabase.postgrest.auth(SUPABASE_ANON_KEY)
+                    get_supabase().postgrest.auth(SUPABASE_ANON_KEY)
                 except Exception as e:
                     print(f"[API] Failed to save session: {e}")
             asyncio.run_coroutine_threadsafe(
@@ -233,14 +252,14 @@ async def analyze_stream(req: AnalyzeRequest, authorization: Optional[str] = Hea
 def get_sessions(authorization: Optional[str] = Header(None), user=Depends(require_auth)):
     try:
         if authorization:
-            supabase.postgrest.auth(authorization.split(" ")[1])
-        res = supabase.table("sessions") \
+            get_supabase().postgrest.auth(authorization.split(" ")[1])
+        res = get_supabase().table("sessions") \
             .select("id, created_at, source_code, final_report") \
             .eq("user_id", user.id) \
             .order("created_at", desc=True) \
             .limit(_SESSION_LIST_LIMIT) \
             .execute()
-        supabase.postgrest.auth(SUPABASE_ANON_KEY)
+        get_supabase().postgrest.auth(SUPABASE_ANON_KEY)
         return res.data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -249,13 +268,13 @@ def get_sessions(authorization: Optional[str] = Header(None), user=Depends(requi
 def get_stats(authorization: Optional[str] = Header(None), user=Depends(require_auth)):
     try:
         if authorization:
-            supabase.postgrest.auth(authorization.split(" ")[1])
-        res = supabase.table("sessions") \
+            get_supabase().postgrest.auth(authorization.split(" ")[1])
+        res = get_supabase().table("sessions") \
             .select("final_report, created_at") \
             .eq("user_id", user.id) \
             .order("created_at", desc=True) \
             .execute()
-        supabase.postgrest.auth(SUPABASE_ANON_KEY)
+        get_supabase().postgrest.auth(SUPABASE_ANON_KEY)
         sessions = res.data
         if not sessions:
             return UserStats(
@@ -301,14 +320,14 @@ def get_stats(authorization: Optional[str] = Header(None), user=Depends(require_
 def get_session(session_id: str, authorization: Optional[str] = Header(None), user=Depends(require_auth)):
     try:
         if authorization:
-            supabase.postgrest.auth(authorization.split(" ")[1])
-        res = supabase.table("sessions") \
+            get_supabase().postgrest.auth(authorization.split(" ")[1])
+        res = get_supabase().table("sessions") \
             .select("*") \
             .eq("id", session_id) \
             .eq("user_id", user.id) \
             .limit(1) \
             .execute()
-        supabase.postgrest.auth(SUPABASE_ANON_KEY)
+        get_supabase().postgrest.auth(SUPABASE_ANON_KEY)
         if not res.data:
             raise HTTPException(status_code=404, detail="Session not found")
         return res.data[0]

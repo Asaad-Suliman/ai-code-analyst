@@ -1,13 +1,8 @@
 import json
 import re
-from openai import OpenAI
 from core.schemas import UserInput, BugReport, Bug, Severity
 from core.prompts import BUG_DETECTOR_PROMPT
-from core.config import OPENAI_API_KEY
-
-client = OpenAI(
-    api_key=OPENAI_API_KEY,
-)
+from core.config import get_llm_client, get_llm_model
 
 def detect_bugs(user_input: UserInput) -> BugReport:
     # Input validation
@@ -37,8 +32,8 @@ def detect_bugs(user_input: UserInput) -> BugReport:
 
     prompt = BUG_DETECTOR_PROMPT.format(source_code=user_input.source_code)
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
+    response = get_llm_client().chat.completions.create(
+        model=get_llm_model(),
         messages=[{"role": "user", "content": prompt}],
     )
 
