@@ -69,6 +69,7 @@ print(f"__MEMORY_PEAK_MB__:{{_mem_kb / 1024:.4f}}", file=sys.stderr)
             "-i",                                       # Accept input via stdin
             "--network", "none",                        # No internet access
             "--memory", f"{SANDBOX_MEMORY_LIMIT_MB}m", # Memory limit
+            "--memory-swap", f"{SANDBOX_MEMORY_LIMIT_MB}m", # Disable swap (equal to --memory) so the cap is real
             "--cpus", "0.5",                            # CPU limit
             "code-sandbox"                              # Docker image name
             ],
