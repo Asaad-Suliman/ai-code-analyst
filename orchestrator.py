@@ -26,8 +26,16 @@ from core.schemas import (
     SecurityReport,
     RAGContext,
 )
-from rag.retriever import retrieve_similar
-from rag.learning_engine import trigger_learning_event
+try:
+    from rag.retriever import retrieve_similar
+    from rag.learning_engine import trigger_learning_event
+    _RAG_AVAILABLE = True
+except ImportError as e:
+    print(f"[Orchestrator] RAG unavailable — {e}. Skipping RAG retrieval/learning; "
+          f"install chromadb (see requirements.txt) to enable it.")
+    retrieve_similar = None
+    trigger_learning_event = None
+    _RAG_AVAILABLE = False
 
 # Import agents — each teammate implements their own
 from agents.architect_agent import analyze_architecture
@@ -115,12 +123,15 @@ class Orchestrator:
 
         # ── RAG Retrieval (runs before agents to provide context) ────────────
         print("  [RAG] Searching knowledge base for similar past fixes...")
-        try:
-            rag_context = retrieve_similar(user_input.source_code, top_k=3)
-            print(f"       {rag_context.retrieval_summary}")
-        except Exception as e:
-            print(f"       RAG retrieval failed: {e}")
-            rag_context = RAGContext(retrieval_summary=f"RAG unavailable: {str(e)}")
+        if not _RAG_AVAILABLE:
+            rag_context = RAGContext(retrieval_summary="RAG unavailable: chromadb not installed.")
+        else:
+            try:
+                rag_context = retrieve_similar(user_input.source_code, top_k=3)
+                print(f"       {rag_context.retrieval_summary}")
+            except Exception as e:
+                print(f"       RAG retrieval failed: {e}")
+                rag_context = RAGContext(retrieval_summary=f"RAG unavailable: {str(e)}")
 
         print("\n" + "=" * 60)
         print("🔍 STAGE 3: Bug Detection")
@@ -227,15 +238,16 @@ class Orchestrator:
             except Exception: pass
 
         # ── Learning Event (runs after validation) ───────────────────────────
-        try:
-            trigger_learning_event(
-                original_code=user_input.source_code,
-                optimized_code=optimization.optimized_code,
-                validation_result=validation,
-                bug_report=bug_report,
-            )
-        except Exception as e:
-            print(f"  [RAG] Learning event error (non-critical): {e}")
+        if _RAG_AVAILABLE:
+            try:
+                trigger_learning_event(
+                    original_code=user_input.source_code,
+                    optimized_code=optimization.optimized_code,
+                    validation_result=validation,
+                    bug_report=bug_report,
+                )
+            except Exception as e:
+                print(f"  [RAG] Learning event error (non-critical): {e}")
 
         # ─── Build Final Report ──────────────────────────────
 
