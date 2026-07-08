@@ -39,15 +39,22 @@ def execute_code(source_code: str) -> ExecutionResult:
         ExecutionResult with stdout, stderr, timing, memory
     """
 
-    # Wrap user code with resource-based memory tracking (RSS, Linux ru_maxrss is in KB)
+    # Wrap user code with an in-container timing + memory harness. Timing the
+    # user code *inside* the container excludes the ~160ms docker/interpreter
+    # startup, so execution_time_ms reflects user code only. Both markers go to
+    # stderr (never stdout) so captured output stays clean.
     wrapped_code = f"""
 import sys
+import time
 import resource
 
+_t0 = time.perf_counter()
 # USER CODE START
 {source_code}
 # USER CODE END
+_exec_ms = (time.perf_counter() - _t0) * 1000
 
+print(f"__EXEC_TIME_MS__:{{_exec_ms:.4f}}", file=sys.stderr)
 _mem_kb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 print(f"__MEMORY_PEAK_MB__:{{_mem_kb / 1024:.4f}}", file=sys.stderr)
 """
@@ -74,8 +81,10 @@ print(f"__MEMORY_PEAK_MB__:{{_mem_kb / 1024:.4f}}", file=sys.stderr)
 
         elapsed_ms = (time.perf_counter() - start) * 1000
 
-        # Extract memory from stderr
+        # Extract timing + memory markers from stderr (last match wins, so a
+        # value printed by the harness after the user code cannot be spoofed).
         memory_mb = 0.0
+        exec_ms = None
         clean_stderr = ""
         for line in result.stderr.splitlines():
             if line.startswith("__MEMORY_PEAK_MB__:"):
@@ -83,14 +92,23 @@ print(f"__MEMORY_PEAK_MB__:{{_mem_kb / 1024:.4f}}", file=sys.stderr)
                     memory_mb = float(line.split(":")[1])
                 except ValueError:
                     pass
+            elif line.startswith("__EXEC_TIME_MS__:"):
+                try:
+                    exec_ms = float(line.split(":")[1])
+                except ValueError:
+                    pass
             else:
                 clean_stderr += line + "\n"
+
+        # Prefer the in-container time; fall back to outer wall-clock only if the
+        # harness marker is missing (e.g. user code raised before it printed).
+        execution_time_ms = round(exec_ms, 3) if exec_ms is not None else round(elapsed_ms, 3)
 
         return ExecutionResult(
             stdout=result.stdout.strip(),
             stderr=clean_stderr.strip(),
             exit_code=result.returncode,
-            execution_time_ms=round(elapsed_ms, 3),
+            execution_time_ms=execution_time_ms,
             memory_usage_mb=round(memory_mb, 4),
         )
 
