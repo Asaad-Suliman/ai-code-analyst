@@ -65,7 +65,7 @@ print("done")
         optimized = """
 print("done")
 """
-        result = validate_optimization(original, optimized)
+        result = validate_optimization(original, optimized)["validation"]
         assert result.outputs_match is True
         assert result.status == ValidationStatus.APPROVED
 
@@ -75,7 +75,7 @@ print("done")
         original = 'print("hello")'
         optimized = 'print("goodbye")'
 
-        result = validate_optimization(original, optimized)
+        result = validate_optimization(original, optimized)["validation"]
         assert result.outputs_match is False
         assert result.status == ValidationStatus.REJECTED
 
@@ -85,7 +85,7 @@ print("done")
         original = 'print("works")'
         optimized = 'this is not valid python!!!'
 
-        result = validate_optimization(original, optimized)
+        result = validate_optimization(original, optimized)["validation"]
         assert result.status == ValidationStatus.REJECTED
 
 

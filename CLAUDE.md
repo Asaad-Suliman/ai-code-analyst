@@ -72,27 +72,29 @@ The `orchestrator.py` at the project root (not `agents/orchestrator.py`) is what
 
 **The validator runs code 3 times each and averages timing.** A 5% speedup threshold triggers `APPROVED`; slower than −5% triggers `REJECTED`. Output comparison normalizes floats, sorted collections, and whitespace before comparing.
 
+**`validate_optimization()` returns a dict, not a bare `ValidationResult`.** It returns `{"validation": ValidationResult, "baseline_resources": ResourceTimeline | None, "optimized_resources": ResourceTimeline | None}` — the resource timelines feed the frontend's CPU/memory heatmap. Callers must unwrap `result["validation"]` to get the `ValidationResult` object; `orchestrator.py` already does this.
+
 ### Module Map
 
-| Path                             | Responsibility                                                        |
-| -------------------------------- | --------------------------------------------------------------------- |
-| `orchestrator.py`                | Root-level pipeline controller — imported by `api/app.py`             |
-| `api/app.py`                     | FastAPI app: `/analyze`, `/analyze/stream` (SSE), auth, CORS          |
-| `main.py`                        | Uvicorn entry point — runs `api.app:app`, reads `HOST`/`PORT`         |
-| `core/schemas.py`                | All Pydantic models (single source of truth for data shapes)          |
-| `core/config.py`                 | All env vars loaded from `.env` via `python-dotenv`                   |
-| `core/code_executor.py`          | Docker sandbox wrapper — used by validator and performance analyzer   |
-| `core/metrics.py`                | AST-based complexity analysis + timing/memory via sandbox             |
-| `core/prompts.py`                | All LLM prompt templates (centralized for easy iteration)             |
-| `agents/architect_agent.py`      | AST-based structural analysis, complexity, function map               |
-| `agents/security_agent.py`       | Scans for security vulnerabilities and risk patterns                  |
-| `agents/bug_detector.py`         | Calls `gpt-4o-mini` via OpenAI, parses JSON response                  |
-| `agents/performance_analyzer.py` | Sandbox execution + AST analysis + `gpt-4o-mini` summary              |
-| `agents/optimizer.py`            | Calls `gpt-4o-mini` with bug + perf context, retries once on bad JSON |
-| `agents/validator.py`            | Runs both code versions in sandbox, compares outputs + timing         |
-| `rag/`                           | ChromaDB RAG pipeline — currently a stub, not wired into agents       |
-| `frontend/`                      | React + Vite showcase app (the main user-facing UI)                   |
-| `src/`                           | Legacy landing page components at root — separate from `frontend/`    |
+| Path                             | Responsibility                                                                                                  |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `orchestrator.py`                | Root-level pipeline controller — imported by `api/app.py`                                                       |
+| `api/app.py`                     | FastAPI app: `/analyze`, `/analyze/stream` (SSE), auth, CORS                                                    |
+| `main.py`                        | Uvicorn entry point — runs `api.app:app`, reads `HOST`/`PORT`                                                   |
+| `core/schemas.py`                | All Pydantic models (single source of truth for data shapes)                                                    |
+| `core/config.py`                 | All env vars loaded from `.env` via `python-dotenv`                                                             |
+| `core/code_executor.py`          | Docker sandbox wrapper — used by validator and performance analyzer                                             |
+| `core/metrics.py`                | AST-based complexity analysis + timing/memory via sandbox                                                       |
+| `core/prompts.py`                | All LLM prompt templates (centralized for easy iteration)                                                       |
+| `agents/architect_agent.py`      | AST-based structural analysis, complexity, function map                                                         |
+| `agents/security_agent.py`       | Scans for security vulnerabilities and risk patterns                                                            |
+| `agents/bug_detector.py`         | Calls `gpt-4o-mini` via OpenAI, parses JSON response                                                            |
+| `agents/performance_analyzer.py` | Sandbox execution + AST analysis + `gpt-4o-mini` summary                                                        |
+| `agents/optimizer.py`            | Calls `gpt-4o-mini` with bug + perf context, retries once on bad JSON                                           |
+| `agents/validator.py`            | Runs both code versions in sandbox, compares outputs + timing — returns a dict, see Key Architectural Decisions |
+| `rag/`                           | ChromaDB RAG pipeline — currently a stub, not wired into agents                                                 |
+| `frontend/`                      | React + Vite showcase app (the main user-facing UI)                                                             |
+| `src/`                           | Legacy landing page components at root — separate from `frontend/`                                              |
 
 ### Environment Setup
 
