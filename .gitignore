@@ -13,3 +13,11 @@ node_modules/
 *.log
 test-results/
 tests/screenshots/
+
+# AI assistant tooling (local only, not for public repo)
+.claude/
+.claude-flow/
+.mcp.json
+
+# internal dev notes
+MODULE5_BUGFIX.md
