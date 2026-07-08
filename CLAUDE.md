@@ -44,18 +44,20 @@ npm run lint      # ESLint check
 
 ## Architecture
 
-This is a 4-agent AI pipeline that analyzes Python code for bugs and performance issues, optimizes it, then **proves** the improvement via sandboxed execution.
+This is a 6-agent AI pipeline that analyzes Python code for bugs, security issues, and performance problems, optimizes it, then **proves** the improvement via sandboxed execution.
 
 ### Pipeline Flow
 
 ```
 POST /analyze  →  Orchestrator.run()
     │
-    ├── Stage 1: agents/bug_detector.py       → BugReport
-    ├── Stage 2: agents/performance_analyzer.py → PerformanceReport
-    ├── Stage 3: agents/optimizer.py           → OptimizationResult
-    └── Stage 4: agents/validator.py           → ValidationResult
-                                                    └── FinalReport (returned to frontend)
+    ├── Stage 1: agents/architect_agent.py       → ArchitectureReport
+    ├── Stage 2: agents/security_agent.py        → SecurityReport
+    ├── Stage 3: agents/bug_detector.py           → BugReport
+    ├── Stage 4: agents/performance_analyzer.py  → PerformanceReport
+    ├── Stage 5: agents/optimizer.py              → OptimizationResult
+    └── Stage 6: agents/validator.py              → ValidationResult
+                                                        └── FinalReport (returned to frontend)
 ```
 
 The `orchestrator.py` at the project root (not `agents/orchestrator.py`) is what `api/app.py` imports. Each stage is wrapped in a try/except that returns a safe fallback so the pipeline never crashes entirely — `stages_completed` on `FinalReport` tracks which stages ran.
@@ -82,6 +84,8 @@ The `orchestrator.py` at the project root (not `agents/orchestrator.py`) is what
 | `core/code_executor.py`          | Docker sandbox wrapper — used by validator and performance analyzer   |
 | `core/metrics.py`                | AST-based complexity analysis + timing/memory via sandbox             |
 | `core/prompts.py`                | All LLM prompt templates (centralized for easy iteration)             |
+| `agents/architect_agent.py`      | AST-based structural analysis, complexity, function map               |
+| `agents/security_agent.py`       | Scans for security vulnerabilities and risk patterns                  |
 | `agents/bug_detector.py`         | Calls `gpt-4o-mini` via OpenAI, parses JSON response                  |
 | `agents/performance_analyzer.py` | Sandbox execution + AST analysis + `gpt-4o-mini` summary              |
 | `agents/optimizer.py`            | Calls `gpt-4o-mini` with bug + perf context, retries once on bad JSON |

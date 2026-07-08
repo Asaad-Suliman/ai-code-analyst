@@ -1,5 +1,11 @@
 # 🤖 Autonomous AI Code Performance & Debugging Analyst
 
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-gpt--4o--mini-412991?logo=openai&logoColor=white)
+
 > Copilot and ChatGPT _suggest_ code changes. They never _run_ them.
 > This system optimizes your Python — then **proves** the optimization is real by
 > executing the original and the rewrite in a locked-down sandbox and comparing
@@ -65,6 +71,9 @@ flowchart TD
     S6 -.-> UI
 ```
 
+![Live pipeline](docs/images/2-live-pipeline.png)
+_Live 6-stage pipeline streaming results via SSE — Optimizer running, 4 stages complete_
+
 **Signature outputs**
 
 - **Code DNA Fingerprint** — a 6-axis radar (complexity, security, performance,
@@ -77,15 +86,14 @@ flowchart TD
 
 ## 📸 Screenshots
 
-> _Images to be added._
+![Landing page](docs/images/1-home.png)
+_Landing page_
 
-| Live pipeline (SSE)                        | Code DNA Fingerprint                        |
-| ------------------------------------------ | ------------------------------------------- |
-| ![Live pipeline](docs/images/pipeline.png) | ![Code DNA radar](docs/images/code-dna.png) |
+![Insights report](docs/images/3-insights.png)
+_Insights report: APPROVED verdict, Code DNA Fingerprint (baseline vs optimized), Resource Timeline_
 
-| Resource Timeline                              | Validation result                                 |
-| ---------------------------------------------- | ------------------------------------------------- |
-| ![Resource timeline](docs/images/timeline.png) | ![Validation verdict](docs/images/validation.png) |
+![Code health trend](docs/images/4-history.png)
+_Code health trend across analysis sessions_
 
 ---
 
