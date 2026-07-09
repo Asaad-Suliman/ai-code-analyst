@@ -89,7 +89,7 @@ export default function Footer() {
           lineHeight: 1.7,
         }}
       >
-        Built with Python, React, Gemini API, and Docker
+        Built with Python, React, OpenRouter API, and Docker
         <br />© 2025 AI Code Analyst. All rights reserved.
       </div>
     </footer>
