@@ -3,7 +3,6 @@ fastapi==0.115.0
 uvicorn==0.30.0
 pydantic==2.9.0
 python-dotenv==1.0.1
-python-multipart>=0.0.6
 
 # AI
 openai>=1.0.0
@@ -14,10 +13,6 @@ sentence-transformers>=2.2.0
 
 # Supabase
 supabase>=2.0.0
-httpx>=0.24.0
-
-# Frontend
-streamlit==1.38.0
 
 # Testing
 pytest==8.3.0
