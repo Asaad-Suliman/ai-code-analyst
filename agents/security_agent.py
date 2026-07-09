@@ -58,7 +58,7 @@ def _run_llm_security_scan(
     bandit_issues: list[SecurityIssue],
 ) -> list[SecurityIssue]:
     """
-    Ask Gemini to find logical security issues that bandit misses.
+    Ask the LLM to find logical security issues that bandit misses.
     Returns list of SecurityIssue objects.
     """
     bandit_summary = (
@@ -139,7 +139,7 @@ def scan_security(
 ) -> SecurityReport:
     """
     Main function called by orchestrator.
-    Runs bandit + Gemini scan, returns SecurityReport.
+    Runs bandit + LLM scan, returns SecurityReport.
     """
     bandit_raw = _run_bandit(user_input.source_code)
     bandit_issues = _parse_bandit_issues(bandit_raw)

@@ -30,7 +30,7 @@ def analyze_performance(user_input: UserInput) -> PerformanceReport:
     2. Measure peak memory usage via tracemalloc inside Docker
     3. Parse AST to estimate time/space complexity
     4. Detect bottlenecks (nested loops, slow membership checks)
-    5. Send all data to Gemini AI for deeper analysis and summary
+    5. Send all data to the LLM for deeper analysis and summary
 
     Returns:
         PerformanceReport with all fields filled from real data

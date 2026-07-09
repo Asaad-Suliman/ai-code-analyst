@@ -96,7 +96,7 @@ def retrieve_similar(
 ) -> RAGContext:
     """
     Search ChromaDB for past successful optimizations similar to source_code.
-    Returns RAGContext with top matches to inject into Gemini prompts.
+    Returns RAGContext with top matches to inject into LLM prompts.
 
     min_similarity: only return matches above this cosine similarity threshold.
     """

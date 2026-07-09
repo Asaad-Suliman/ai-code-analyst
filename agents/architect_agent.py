@@ -68,8 +68,8 @@ def _estimate_complexity(source_code: str, func_name: str) -> str:
 
 def _get_architecture_summary(source_code: str, dependency_map: Dict[str, List[str]]) -> str:
     """
-    Ask Gemini for a plain-English summary of the code structure.
-    Falls back to a generic message if Gemini fails.
+    Ask the LLM for a plain-English summary of the code structure.
+    Falls back to a generic message if the LLM call fails.
     """
     dep_str = json.dumps(dependency_map, indent=2)
     prompt = f"""You are a code architecture analyst.
