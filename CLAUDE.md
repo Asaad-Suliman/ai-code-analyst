@@ -64,9 +64,11 @@ The `orchestrator.py` at the project root (not `agents/orchestrator.py`) is what
 
 ### Key Architectural Decisions
 
-**LLM calls use OpenAI directly.** All agents instantiate an `openai.OpenAI` client (default base URL) authenticated with `OPENAI_API_KEY`. The model used is `gpt-4o-mini`.
+**LLM calls go through a shared, lazy client — OpenRouter primary, OpenAI fallback.** No agent constructs an `openai.OpenAI` client at import time. `core/config.py`'s `get_llm_client()` builds the client on first use: it prefers `OPENROUTER_API_KEY` (base URL `https://openrouter.ai/api/v1`, model prefixed `openai/gpt-4o-mini`), and falls back to `OPENAI_API_KEY` (direct OpenAI, model `gpt-4o-mini`) if OpenRouter isn't set. If neither key is configured, the app still boots — an LLM stage only raises a clear error when it's actually called.
 
-**Code execution is Docker-sandboxed.** `core/code_executor.py` runs user code inside a `code-sandbox` Docker container (built from the root `Dockerfile`) with no network, capped CPU (0.5 cores), and capped memory (default 128 MB). This is what makes validation meaningful. The sandbox image is `python:3.11-slim` with common scientific packages pre-installed.
+**Code execution is Docker-sandboxed — every path, no exceptions.** `core/code_executor.py` runs user code inside a `code-sandbox` Docker container (built from the root `Dockerfile`) as a non-root user, with no network, capped CPU (0.5 cores), capped memory (128 MB, swap disabled so the cap is real), and a hard timeout. No agent or core module ever executes user-submitted code via a host subprocess — the validator and performance analyzer both go through this one function. This containment (not command filtering) is the actual security guarantee, and it's what makes validation meaningful.
+
+**Timing is measured inside the container, not around `docker run`.** A `perf_counter()` harness wraps the user code inside the sandbox and reports elapsed time via a `__EXEC_TIME_MS__` stderr marker (same pattern as the memory marker below). This excludes Docker/interpreter startup (~150–400ms) from `execution_time_ms`, so the validator's 5% speedup threshold compares real user-code time instead of startup noise.
 
 **Pydantic schemas are the data contracts.** All inter-agent data is typed in `core/schemas.py`. Every agent function signature uses these models — do not change a schema without updating all consuming agents.
 
@@ -75,6 +77,10 @@ The `orchestrator.py` at the project root (not `agents/orchestrator.py`) is what
 **`validate_optimization()` returns a dict, not a bare `ValidationResult`.** It returns `{"validation": ValidationResult, "baseline_resources": ResourceTimeline | None, "optimized_resources": ResourceTimeline | None}` — the resource timelines feed the frontend's CPU/memory heatmap. Callers must unwrap `result["validation"]` to get the `ValidationResult` object; `orchestrator.py` already does this.
 
 **RAG (`rag/`) is a required runtime dependency, not a stub.** `orchestrator.py` imports `rag.retriever.retrieve_similar` (called before Stage 3, on every request) and `rag.learning_engine.trigger_learning_event` (called after Stage 6) unconditionally, and `chromadb` is a hard top-level import in `rag/retriever.py`. If `chromadb` is missing, `orchestrator.py` catches the `ImportError` at import time, logs a warning, and skips both RAG calls for the life of the process — the rest of the pipeline runs normally, just without retrieval/learning. Keep `chromadb` in `requirements.txt`; it is expected to be installed in normal operation.
+
+**Dependencies are trimmed to what's actually imported.** `google-generativeai`, `streamlit`, `python-multipart`, and an explicit `httpx` pin (already required transitively by `supabase`) have all been removed from `requirements.txt` after a grep-based import audit confirmed zero usage.
+
+**Test suite: 10/10 passing.** `python -m pytest tests/ -v` covers the full pipeline, the validator's dict return contract, and sandbox isolation (host-filesystem isolation, network block, timeout, memory cap).
 
 ### Module Map
 
@@ -90,7 +96,7 @@ The `orchestrator.py` at the project root (not `agents/orchestrator.py`) is what
 | `core/prompts.py`                | All LLM prompt templates (centralized for easy iteration)                                                               |
 | `agents/architect_agent.py`      | AST-based structural analysis, complexity, function map                                                                 |
 | `agents/security_agent.py`       | Scans for security vulnerabilities and risk patterns                                                                    |
-| `agents/bug_detector.py`         | Calls `gpt-4o-mini` via OpenAI, parses JSON response                                                                    |
+| `agents/bug_detector.py`         | Calls `gpt-4o-mini` via the shared LLM client (OpenRouter/OpenAI), parses JSON response                                 |
 | `agents/performance_analyzer.py` | Sandbox execution + AST analysis + `gpt-4o-mini` summary                                                                |
 | `agents/optimizer.py`            | Calls `gpt-4o-mini` with bug + perf context, retries once on bad JSON                                                   |
 | `agents/validator.py`            | Runs both code versions in sandbox, compares outputs + timing — returns a dict, see Key Architectural Decisions         |
@@ -102,8 +108,9 @@ The `orchestrator.py` at the project root (not `agents/orchestrator.py`) is what
 
 Copy `.env.example` to `.env` and set:
 
-- `OPENAI_API_KEY` — your OpenAI API key (used by all LLM agents)
-- `SUPABASE_URL` and `SUPABASE_ANON_KEY` — for auth and session persistence
+- `OPENROUTER_API_KEY` — primary LLM provider (recommended); used by all LLM agents
+- `OPENAI_API_KEY` — documented fallback if `OPENROUTER_API_KEY` is left unset (direct OpenAI)
+- `SUPABASE_URL` and `SUPABASE_ANON_KEY` — optional; only needed for auth and session persistence. Core `/analyze` works without them; auth/history endpoints return `503` until they're set
 - Other vars have sensible defaults; see `core/config.py` for all options
 
 ### Two Frontends
