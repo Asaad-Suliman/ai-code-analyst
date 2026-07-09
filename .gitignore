@@ -9,6 +9,7 @@ build/
 .vscode/
 .idea/
 venv/
+.venv/
 node_modules/
 *.log
 test-results/
