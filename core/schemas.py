@@ -99,7 +99,7 @@ class CodeDNAFingerprint(BaseModel):
     complexity: float       # 100 - cyclomatic_complexity_score (inverted: lower complexity = better)
     security: float         # 100 - (critical_issues * 20 + warnings * 5), clamped 0-100
     performance: float      # derived from execution_time rank vs baseline
-    readability: float      # Gemini-supplied or AST heuristic (avg function length, naming)
+    readability: float      # LLM-supplied or AST heuristic (avg function length, naming)
     bug_density: float      # 100 - (bug_score from BugReport)
     optimization: float     # speedup_percentage mapped to 0-100 scale
     label: str              # "Baseline" or "Optimized"

@@ -3,7 +3,7 @@
 ```mermaid
 graph TD
     User["👤 User\n(Developer)"]
-    Gemini["🤖 Gemini API\n(via OpenRouter)"]
+    OpenRouter["🤖 OpenRouter API\n(gpt-4o-mini)"]
     Docker["🐳 Docker Sandbox\n(code execution)"]
 
     subgraph System["AI Code Analyst"]
@@ -25,11 +25,11 @@ graph TD
     Orch --> Opt
     Orch --> Val
 
-    Bug -- "bug analysis prompt" --> Gemini
-    Gemini -- "structured JSON bugs" --> Bug
+    Bug -- "bug analysis prompt" --> OpenRouter
+    OpenRouter -- "structured JSON bugs" --> Bug
 
-    Opt -- "optimization prompt" --> Gemini
-    Gemini -- "optimized code" --> Opt
+    Opt -- "optimization prompt" --> OpenRouter
+    OpenRouter -- "optimized code" --> Opt
 
     Val -- "execute original + optimized code" --> Docker
     Docker -- "stdout, timing, exit code" --> Val
@@ -44,5 +44,5 @@ graph TD
 **External Entities:**
 
 - **User** — submits Python code, receives structured analysis report.
-- **Gemini API (via OpenRouter)** — called by Bug Detector and Optimizer for AI-powered analysis and code generation.
+- **OpenRouter API (gpt-4o-mini)** — called by Bug Detector and Optimizer for AI-powered analysis and code generation.
 - **Docker Sandbox** — isolated execution environment used by the Validator to safely run user-submitted and optimized code.

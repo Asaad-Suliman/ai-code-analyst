@@ -4,7 +4,7 @@ Prompt Templates
 Owner: Ibro
 Status: STUB — fill with real prompts for each agent.
 
-All Gemini prompts live here. Centralized so we can iterate on them
+All LLM prompts live here. Centralized so we can iterate on them
 without touching agent logic.
 """
 

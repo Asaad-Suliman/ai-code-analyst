@@ -21,7 +21,7 @@ const agents = [
         "has_critical_bugs: bool",
       ],
     },
-    tech: "Gemini 2.0 Flash via OpenRouter API",
+    tech: "gpt-4o-mini via OpenRouter API",
   },
   {
     id: 2,
@@ -42,7 +42,7 @@ const agents = [
         "bottlenecks: string[]",
       ],
     },
-    tech: "Docker sandbox + AST analysis + Gemini 2.0 Flash",
+    tech: "Docker sandbox + AST analysis + gpt-4o-mini",
   },
   {
     id: 3,
@@ -67,7 +67,7 @@ const agents = [
         "expected_improvement: string",
       ],
     },
-    tech: "Gemini 2.0 Flash with retry logic + prompt chaining",
+    tech: "gpt-4o-mini with retry logic + prompt chaining",
   },
   {
     id: 4,

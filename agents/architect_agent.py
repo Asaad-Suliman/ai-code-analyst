@@ -4,14 +4,7 @@ import re
 from typing import Dict, List
 
 from core.schemas import ArchitectReport, FunctionInfo, UserInput
-from core.config import OPENAI_API_KEY
-
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=OPENAI_API_KEY,
-)
-MODEL = "gpt-4o-mini"
+from core.config import get_llm_client, get_llm_model
 
 
 def _extract_functions(source_code: str) -> Dict[str, List[str]]:
@@ -75,8 +68,8 @@ def _estimate_complexity(source_code: str, func_name: str) -> str:
 
 def _get_architecture_summary(source_code: str, dependency_map: Dict[str, List[str]]) -> str:
     """
-    Ask Gemini for a plain-English summary of the code structure.
-    Falls back to a generic message if Gemini fails.
+    Ask the LLM for a plain-English summary of the code structure.
+    Falls back to a generic message if the LLM call fails.
     """
     dep_str = json.dumps(dependency_map, indent=2)
     prompt = f"""You are a code architecture analyst.
@@ -93,8 +86,8 @@ Code:
 Respond with ONLY the summary text. No JSON, no markdown, no extra formatting."""
 
     try:
-        response = client.chat.completions.create(
-            model=MODEL,
+        response = get_llm_client().chat.completions.create(
+            model=get_llm_model(),
             messages=[{"role": "user", "content": prompt}],
             max_tokens=200,
             temperature=0.3,

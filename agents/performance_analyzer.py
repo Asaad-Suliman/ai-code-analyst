@@ -4,69 +4,21 @@ Performance Analyzer Agent
 Owner: Omer
 Sprint: 1, 2
 
-Runs user code in Docker sandbox and measures real performance.
-Combines real execution data (timing, memory) with AST analysis (complexity, bottlenecks).
-Then sends results to Gemini AI for a deeper natural language summary.
+Runs user code inside the code-sandbox Docker container (via core.metrics, which wraps
+core.code_executor) and measures real execution time and peak memory. All user-submitted
+code executes inside the sandbox with no network, capped CPU/memory — never on the host.
+Combines that runtime data with AST analysis (complexity, bottlenecks), then sends the
+results to OpenAI (gpt-4o-mini) for a natural-language summary.
 """
 import json
-import subprocess
-import threading
-import time
-import psutil
-from openai import OpenAI
 from core.schemas import UserInput, PerformanceReport
 from core.metrics import (
     measure_execution_time,
+    measure_memory_usage,
     estimate_complexity,
     detect_bottlenecks,
 )
-from core.config import OPENAI_API_KEY
-
-
-def _measure_process_memory_mb(code_string: str) -> float:
-    """Run code in a subprocess and return peak RSS memory in MB."""
-    memory_samples = []
-    process_ref = [None]
-
-    def sample_memory():
-        while process_ref[0] is None:
-            time.sleep(0.01)
-        proc = process_ref[0]
-        try:
-            ps_proc = psutil.Process(proc.pid)
-            while proc.poll() is None:
-                try:
-                    mem = ps_proc.memory_info().rss / (1024 * 1024)
-                    memory_samples.append(mem)
-                except psutil.NoSuchProcess:
-                    break
-                time.sleep(0.05)
-        except Exception:
-            pass
-
-    sampler = threading.Thread(target=sample_memory, daemon=True)
-    sampler.start()
-
-    try:
-        proc = subprocess.Popen(
-            ["python3", "-c", code_string],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        process_ref[0] = proc
-        proc.wait(timeout=15)
-    except Exception:
-        return 0.0
-
-    sampler.join(timeout=2)
-
-    if not memory_samples:
-        return 0.0
-    return round(max(memory_samples), 2)
-
-client = OpenAI(
-    api_key=OPENAI_API_KEY,
-)
+from core.config import get_llm_client, get_llm_model
 
 
 def analyze_performance(user_input: UserInput) -> PerformanceReport:
@@ -78,7 +30,7 @@ def analyze_performance(user_input: UserInput) -> PerformanceReport:
     2. Measure peak memory usage via tracemalloc inside Docker
     3. Parse AST to estimate time/space complexity
     4. Detect bottlenecks (nested loops, slow membership checks)
-    5. Send all data to Gemini AI for deeper analysis and summary
+    5. Send all data to the LLM for deeper analysis and summary
 
     Returns:
         PerformanceReport with all fields filled from real data
@@ -88,8 +40,8 @@ def analyze_performance(user_input: UserInput) -> PerformanceReport:
     # Step 1 — Measure real execution time
     execution_time = measure_execution_time(source_code, runs=3)
 
-    # Step 2 — Measure real memory usage (process RSS, not system total)
-    memory_usage = _measure_process_memory_mb(source_code)
+    # Step 2 — Measure real peak memory inside the Docker sandbox
+    memory_usage = measure_memory_usage(source_code)
 
     # Step 3 — Static complexity analysis
     complexity = estimate_complexity(source_code)
@@ -124,8 +76,8 @@ Return ONLY valid JSON:
 }}"""
 
     try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
+        response = get_llm_client().chat.completions.create(
+            model=get_llm_model(),
             messages=[{"role": "user", "content": prompt}],
         )
         text = response.choices[0].message.content
