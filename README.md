@@ -7,7 +7,7 @@
 ![OpenAI](https://img.shields.io/badge/OpenAI-gpt--4o--mini-412991?logo=openai&logoColor=white)
 
 > Copilot and ChatGPT _suggest_ code changes. They never _run_ them.
-> This system optimizes your Python — then **proves** the optimization is real by
+> This system optimizes your Python — then **tests** whether the optimization is real by
 > executing the original and the rewrite in a locked-down sandbox and comparing
 > timing and output, byte for byte.
 
@@ -25,12 +25,11 @@ On a 150-line, 6-function benchmark where every function was accidentally O(n²)
 
 | Metric          | Result                                             |
 | --------------- | -------------------------------------------------- |
-| **Speedup**     | **77.1% faster** (measured, sandbox-averaged)      |
 | **Correctness** | **Byte-identical output** to the original          |
 | **Complexity**  | All 6 functions rewritten to **O(n) / O(n log n)** |
-| **Verdict**     | `APPROVED` — improvement proven, not assumed       |
+| **Verdict**     | `APPROVED` — improvement measured, not assumed       |
 
-**Every optimization is guaranteed, not guessed.** The validator runs the original and
+**Every approved optimization has been run and measured, not guessed.** The validator runs the original and
 the optimized code **3× each** in the sandbox, averages the timing, and requires a **≥5%
 speedup with matching output** before it will report `APPROVED`. Anything slower than
 −5%, or with mismatched output, is `REJECTED`.
