@@ -101,7 +101,7 @@ _Code health trend across analysis sessions_
 | Layer           | Technology                             |
 | --------------- | -------------------------------------- |
 | Backend         | Python · FastAPI · Uvicorn             |
-| AI / LLM        | OpenAI `gpt-4o-mini`                   |
+| AI / LLM        | OpenAI `gpt-6-luna`                   |
 | Data contracts  | Pydantic schemas (typed, end to end)   |
 | Knowledge / RAG | ChromaDB                               |
 | Sandbox         | Docker (no network · 0.5 CPU · 128 MB) |

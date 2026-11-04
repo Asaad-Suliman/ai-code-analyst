@@ -19,7 +19,7 @@ const members = [
     avatarColor: "#f59e0b",
     files: ["bug_detector.py", "optimizer.py", "prompts.py"],
     quote:
-      "Built the AI agents that detect bugs and generate optimized code using gpt-4o-mini via OpenRouter.",
+      "Built the AI agents that detect bugs and generate optimized code using gpt-6-luna via OpenRouter.",
     accent: "#f59e0b",
   },
   {

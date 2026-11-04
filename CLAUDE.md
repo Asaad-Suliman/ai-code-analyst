@@ -64,7 +64,7 @@ The `orchestrator.py` at the project root (not `agents/orchestrator.py`) is what
 
 ### Key Architectural Decisions
 
-**LLM calls go through a shared, lazy client — OpenRouter primary, OpenAI fallback.** No agent constructs an `openai.OpenAI` client at import time. `core/config.py`'s `get_llm_client()` builds the client on first use: it prefers `OPENROUTER_API_KEY` (base URL `https://openrouter.ai/api/v1`, model prefixed `openai/gpt-4o-mini`), and falls back to `OPENAI_API_KEY` (direct OpenAI, model `gpt-4o-mini`) if OpenRouter isn't set. If neither key is configured, the app still boots — an LLM stage only raises a clear error when it's actually called.
+**LLM calls go through a shared, lazy client — OpenRouter primary, OpenAI fallback.** No agent constructs an `openai.OpenAI` client at import time. `core/config.py`'s `get_llm_client()` builds the client on first use: it prefers `OPENROUTER_API_KEY` (base URL `https://openrouter.ai/api/v1`, model prefixed `openai/gpt-6-luna`), and falls back to `OPENAI_API_KEY` (direct OpenAI, model `gpt-6-luna`) if OpenRouter isn't set. If neither key is configured, the app still boots — an LLM stage only raises a clear error when it's actually called.
 
 **Code execution is Docker-sandboxed — every path, no exceptions.** `core/code_executor.py` runs user code inside a `code-sandbox` Docker container (built from the root `Dockerfile`) as a non-root user, with no network, capped CPU (0.5 cores), capped memory (128 MB, swap disabled so the cap is real), and a hard timeout. No agent or core module ever executes user-submitted code via a host subprocess — the validator and performance analyzer both go through this one function. This containment (not command filtering) is the actual security guarantee, and it's what makes validation meaningful.
 
@@ -96,9 +96,9 @@ The `orchestrator.py` at the project root (not `agents/orchestrator.py`) is what
 | `core/prompts.py`                | All LLM prompt templates (centralized for easy iteration)                                                               |
 | `agents/architect_agent.py`      | AST-based structural analysis, complexity, function map                                                                 |
 | `agents/security_agent.py`       | Scans for security vulnerabilities and risk patterns                                                                    |
-| `agents/bug_detector.py`         | Calls `gpt-4o-mini` via the shared LLM client (OpenRouter/OpenAI), parses JSON response                                 |
-| `agents/performance_analyzer.py` | Sandbox execution + AST analysis + `gpt-4o-mini` summary                                                                |
-| `agents/optimizer.py`            | Calls `gpt-4o-mini` with bug + perf context, retries once on bad JSON                                                   |
+| `agents/bug_detector.py`         | Calls `gpt-6-luna` via the shared LLM client (OpenRouter/OpenAI), parses JSON response                                 |
+| `agents/performance_analyzer.py` | Sandbox execution + AST analysis + `gpt-6-luna` summary                                                                |
+| `agents/optimizer.py`            | Calls `gpt-6-luna` with bug + perf context, retries once on bad JSON                                                   |
 | `agents/validator.py`            | Runs both code versions in sandbox, compares outputs + timing — returns a dict, see Key Architectural Decisions         |
 | `rag/`                           | ChromaDB RAG pipeline — wired into `orchestrator.py` (retrieval + learning); degrades gracefully if chromadb is missing |
 | `frontend/`                      | React + Vite showcase app (the main user-facing UI)                                                                     |

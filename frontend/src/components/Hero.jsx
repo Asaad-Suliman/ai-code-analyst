@@ -390,7 +390,7 @@ export default function Hero() {
             "Python",
             "FastAPI",
             "React",
-            "gpt-4o-mini",
+            "gpt-6-luna",
             "Docker",
             "OpenRouter",
           ].map((tech) => (
