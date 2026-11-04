@@ -80,7 +80,7 @@ The `orchestrator.py` at the project root (not `agents/orchestrator.py`) is what
 
 **Dependencies are trimmed to what's actually imported.** `google-generativeai`, `streamlit`, `python-multipart`, and an explicit `httpx` pin (already required transitively by `supabase`) have all been removed from `requirements.txt` after a grep-based import audit confirmed zero usage.
 
-**Test suite: 10/10 passing.** `python -m pytest tests/ -v` covers the full pipeline, the validator's dict return contract, and sandbox isolation (host-filesystem isolation, network block, timeout, memory cap).
+**Test suite: 10 tests.** `python -m pytest tests/ -v` covers the full pipeline, the validator's dict return contract, and sandbox isolation (host-filesystem isolation, network block, timeout, memory cap). With no LLM key, `test_pipeline_with_slow_code` skips; without Docker or the `code-sandbox` image, `test_validator_approves_faster_code` and the host-isolation test skip. CI runs with no key.
 
 ### Module Map
 

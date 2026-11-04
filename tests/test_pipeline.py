@@ -5,10 +5,35 @@ Tests the full orchestrator pipeline end-to-end.
 Run with: python -m pytest tests/test_pipeline.py -v
 """
 
+import subprocess
+
 import pytest
 from orchestrator import Orchestrator
+from core import config
 from core.schemas import FinalReport, ValidationStatus
 from core.code_executor import execute_code
+
+
+def _sandbox_ready() -> bool:
+    """True if Docker is reachable and the code-sandbox image is built."""
+    try:
+        return subprocess.run(
+            ["docker", "image", "inspect", "code-sandbox"],
+            capture_output=True,
+            timeout=15,
+        ).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+needs_llm_key = pytest.mark.skipif(
+    not (config.OPENROUTER_API_KEY or config.OPENAI_API_KEY),
+    reason="no LLM key set (OPENROUTER_API_KEY / OPENAI_API_KEY)",
+)
+needs_sandbox = pytest.mark.skipif(
+    not _sandbox_ready(),
+    reason="Docker not reachable or code-sandbox image missing (docker build -t code-sandbox .)",
+)
 
 
 class TestPipeline:
@@ -32,6 +57,7 @@ print(add(2, 3))
         assert report.optimization is not None
         assert report.validation is not None
 
+    @needs_llm_key
     def test_pipeline_with_slow_code(self):
         """Pipeline should detect and optimize slow code."""
         code = """
@@ -54,6 +80,7 @@ print(find_duplicates([1, 2, 3, 2, 4, 5, 1]))
 class TestValidator:
     """Test the validator agent independently."""
 
+    @needs_sandbox
     def test_validator_approves_faster_code(self):
         from agents.validator import validate_optimization
 
@@ -99,6 +126,7 @@ print("done")
 # does in there can reach the host or the network. What must hold is that the
 # container is actually isolated, not that arbitrary commands fail.
 
+@needs_sandbox
 def test_sandbox_isolates_host_fs_from_shell_commands():
     """
     os.system is NOT blocked — running a shell command inside the sandbox is
