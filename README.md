@@ -122,7 +122,7 @@ _Code health trend across analysis sessions_
 cp .env.example .env          # then fill in the keys below
 
 # .env:
-#   OPENAI_API_KEY=sk-...
+#   OPENROUTER_API_KEY=...        (recommended) or OPENAI_API_KEY=sk-...
 #   SUPABASE_URL=https://<project>.supabase.co
 #   SUPABASE_ANON_KEY=<anon-key>
 
@@ -138,6 +138,14 @@ cd frontend
 npm install
 npm run dev                             # open http://localhost:5173
 ```
+
+### Use your own API key
+
+1. Copy `.env.example` to `.env`.
+2. Paste your key after `OPENROUTER_API_KEY=` (recommended) or `OPENAI_API_KEY=`.
+3. Done. Optionally set `LLM_MODEL=` to use a different model (default: `gpt-6-luna`).
+
+Keys are read from your local `.env` only. `.env` is git-ignored, and keys are never stored in the repo.
 
 ---
 
