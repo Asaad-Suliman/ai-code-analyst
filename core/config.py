@@ -24,7 +24,8 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # Single source of truth for the model name (see get_llm_model()).
-LLM_MODEL = "gpt-4o-mini"
+# "or": an empty LLM_MODEL= line (copied from .env.example) must not win.
+LLM_MODEL = os.getenv("LLM_MODEL") or "gpt-6-luna"
 
 
 @lru_cache(maxsize=1)

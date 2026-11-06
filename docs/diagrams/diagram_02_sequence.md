@@ -10,7 +10,7 @@ sequenceDiagram
     participant Perf as Performance Analyzer
     participant Opt as Optimizer
     participant Val as Validator
-    participant OpenRouter as OpenRouter API (gpt-4o-mini)
+    participant OpenRouter as OpenRouter API (gpt-6-luna)
 
     User->>Frontend: Paste Python code & submit
     Frontend->>API: POST /analyze { source_code }

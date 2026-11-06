@@ -46,14 +46,14 @@ const layers = [
       {
         name: "Bug Detector",
         file: "bug_detector.py",
-        tech: "gpt-4o-mini via OpenRouter",
+        tech: "gpt-6-luna via OpenRouter",
       },
       {
         name: "Perf Analyzer",
         file: "performance_analyzer.py",
         tech: "Docker + AST",
       },
-      { name: "Optimizer", file: "optimizer.py", tech: "gpt-4o-mini + Retry" },
+      { name: "Optimizer", file: "optimizer.py", tech: "gpt-6-luna + Retry" },
       { name: "Validator", file: "validator.py", tech: "Docker sandbox" },
     ],
   },

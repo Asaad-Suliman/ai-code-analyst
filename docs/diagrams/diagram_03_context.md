@@ -3,7 +3,7 @@
 ```mermaid
 graph TD
     User["👤 User\n(Developer)"]
-    OpenRouter["🤖 OpenRouter API\n(gpt-4o-mini)"]
+    OpenRouter["🤖 OpenRouter API\n(gpt-6-luna)"]
     Docker["🐳 Docker Sandbox\n(code execution)"]
 
     subgraph System["AI Code Analyst"]
@@ -44,5 +44,5 @@ graph TD
 **External Entities:**
 
 - **User** — submits Python code, receives structured analysis report.
-- **OpenRouter API (gpt-4o-mini)** — called by Bug Detector and Optimizer for AI-powered analysis and code generation.
+- **OpenRouter API (gpt-6-luna)** — called by Bug Detector and Optimizer for AI-powered analysis and code generation.
 - **Docker Sandbox** — isolated execution environment used by the Validator to safely run user-submitted and optimized code.

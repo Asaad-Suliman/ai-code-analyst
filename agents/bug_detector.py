@@ -82,5 +82,7 @@ def detect_bugs(user_input: UserInput) -> BugReport:
         bug_score=data.get("bug_score", 50),
         bugs=bugs,
         summary=data.get("summary", "Analysis complete."),
-        has_critical_bugs=data.get("has_critical_bugs", False),
+        # Derived from the parsed bugs: models do not reliably set the flag.
+        has_critical_bugs=bool(data.get("has_critical_bugs"))
+        or any(b.severity == Severity.CRITICAL for b in bugs),
     )

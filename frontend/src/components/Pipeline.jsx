@@ -21,7 +21,7 @@ const agents = [
         "has_critical_bugs: bool",
       ],
     },
-    tech: "gpt-4o-mini via OpenRouter API",
+    tech: "gpt-6-luna via OpenRouter API",
   },
   {
     id: 2,
@@ -42,7 +42,7 @@ const agents = [
         "bottlenecks: string[]",
       ],
     },
-    tech: "Docker sandbox + AST analysis + gpt-4o-mini",
+    tech: "Docker sandbox + AST analysis + gpt-6-luna",
   },
   {
     id: 3,
@@ -67,7 +67,7 @@ const agents = [
         "expected_improvement: string",
       ],
     },
-    tech: "gpt-4o-mini with retry logic + prompt chaining",
+    tech: "gpt-6-luna with retry logic + prompt chaining",
   },
   {
     id: 4,

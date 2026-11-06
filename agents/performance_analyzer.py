@@ -8,7 +8,7 @@ Runs user code inside the code-sandbox Docker container (via core.metrics, which
 core.code_executor) and measures real execution time and peak memory. All user-submitted
 code executes inside the sandbox with no network, capped CPU/memory — never on the host.
 Combines that runtime data with AST analysis (complexity, bottlenecks), then sends the
-results to OpenAI (gpt-4o-mini) for a natural-language summary.
+results to OpenAI (gpt-6-luna) for a natural-language summary.
 """
 import json
 from core.schemas import UserInput, PerformanceReport
